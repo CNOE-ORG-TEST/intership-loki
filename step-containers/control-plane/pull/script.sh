@@ -20,7 +20,10 @@ cat variables.json
 CLUSTER_NAME="$(jq -r '.clusterName' variables.json)"
 DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' variables.json)"
 DEPLOY_AWS_REGION="$(jq -r '.region' variables.json)"
-EKS_VERSION = "$(jq -r '.eksVersion' variables.json)"
+EKS_VERSION="$(jq -r '.eksVersion' variables.json)"
+VERSION="$(jq -r '.eksVersion' variables.json)"
+DATE="{\"timestamp_build\": \"$(echo $(date +%Y-%m-%dT%H-%M-%S_%s))\"}"
+COMMIT="test"
 CLOUD_FORMATION_NAME = "cnoe-${CLUSTER_NAME}-nodegroup"
 ROLE_NAME = "cnoe-role-${CLUSTER_NAME}-cp"
 STACK_NAME = "StackPullControlplane-${CLUSTER_NAME}"
@@ -48,10 +51,13 @@ aws cloudformation deploy --no-fail-on-empty-changeset --template-file /cloudfor
 cd /shared
 aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cloudformation_cluster.yaml
 
-sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' ./cloudformation_cluster.yaml
-sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' ./cloudformation_cluster.yaml
-sed -i -e 's/__DEPLOY_AWS_REGION__/'"$DEPLOY_AWS_REGION"'/g' ./cloudformation_cluster.yaml
-sed -i -e 's/__CLOUDFORMATION_NAME__/'"$CLOUDFORMATION_NAME"'/g' ./cloudformation_cluster.yaml
-sed -i -e 's/__CLUSTER_NAME__/'"$CLUSTER_NAME"'/g' ./cloudformation_cluster.yaml
-sed -i -e 's/__EKS_VERSION__/'"$EKS_VERSION"'/g' ./cloudformation_cluster.yaml
+#sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' ./cloudformation_cluster.yaml
+#sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' ./cloudformation_cluster.yaml
+#sed -i -e 's/__DEPLOY_AWS_REGION__/'"$DEPLOY_AWS_REGION"'/g' ./cloudformation_cluster.yaml
+#sed -i -e 's/__CLOUDFORMATION_NAME__/'"$CLOUDFORMATION_NAME"'/g' ./cloudformation_cluster.yaml
+#sed -i -e 's/__CLUSTER_NAME__/'"$CLUSTER_NAME"'/g' ./cloudformation_cluster.yaml
+#sed -i -e 's/__EKS_VERSION__/'"$EKS_VERSION"'/g' ./cloudformation_cluster.yaml
+sed -i -e 's/__VERSION__/'"$VERSION"'/g' ./cloudformation_cluster.yaml
+sed -i -e 's/__DATE__/'"$DATE"'/g' ./cloudformation_cluster.yaml
+sed -i -e 's/__COMMIT__/'"$COMMIT"'/g' ./cloudformation_cluster.yaml
 #crypt
