@@ -1,0 +1,177 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  RoleForEksManagedControlplane:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "__ROLE_NAME__"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "cloudformation.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+          - Effect: "Allow"
+            Principal:
+              AWS:
+                - "<qua va un ruolo di argo workflow da creare"
+            Action:
+              - "sts:AssumeRole"
+      MaxSessionDuration: 43200
+      Path: /
+      Policies:
+        - PolicyName: "AssumeRoleControlPlane"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "iam:CreateRole"
+                  - "iam:GetRole"
+                  - "iam:AttachRolePolicy"
+                  - "iam:PutRolePolicy"
+                  - "iam:PassRole"
+                Resource:
+                  - "arn:aws:iam::__DEPLOY_AWS_ACCOUNT_ID__:role/__ROLE_NAME__*" --> decidiamo il nome del ruolo
+        - PolicyName: "DenyDeleteAllResources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Deny"
+                Action:
+                  - "iam:Delete*"
+                  - "ec2:Delete*"
+                  - "eks:Delete*"
+                Resource:
+                  - "*"
+        - PolicyName: "AllowDeployCloudformation"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Deny"
+                Action:
+                  - "cloudformation:DeleteStack"
+                  - "cloudformation:DeleteStackInstances"
+                  - "cloudformation:DeleteStackSet"
+                Resource:
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/*" -> dobbiamo decidere una naming convention per i cloudformation del dataplane
+              - Effect: "Allow"
+                Action:
+                  - "cloudformation:*"
+                Resource:
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__CLOUDFORMATION_NAME__/*" -> la stessa naming sopra
+        - PolicyName: "CreateManagedClusterEKS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "eks:CreateCluster"
+                  - "eks:DescribeCluster"
+                  - "eks:DescribeUpdate"
+                  - "eks:ListClusters"
+                  - "eks:UpdateClusterConfig"
+                  - "eks:UpdateClusterVersion"
+                Resource:
+                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/<cluster-name>" -> da decidere
+        - PolicyName: "CreateControlPlaneSG"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:CreateSecurityGroup"
+                  - "ec2:DescribeSecurityGroups"
+                Resource:
+                  - "*"
+        - PolicyName: "TagControlPlaneRes"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:CreateTags"
+                  - "iam:TagPolicy"
+                  - "iam:TagRole"
+                Resource:
+                  - "*"
+              - Effect: "Allow"
+                Action:
+                  - "eks:TagResource"
+                Resource:
+                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/<stesso cluster name di sopra>"
+        - PolicyName: "DescribeFeBeSubnets"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:DescribeSubnets"
+                Resource:
+                  - "*"
+        - PolicyName: "DescribeVpcs"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:DescribeVpcs"
+                Resource:
+                  - "*"
+        - PolicyName: "OIDCProviderPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "iam:GetOpenIDConnectProvider"
+                  - "iam:CreateOpenIDConnectProvider"
+                Resource:
+                  - "arn:aws:iam::__DEPLOY_AWS_ACCOUNT_ID__:oidc-provider/oidc.eks.__DEPLOY_AWS_REGION__.amazonaws.com*"
+        - PolicyName: "CreateRoleEKS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "iam:CreateRole"
+                  - "iam:GetRole"
+                  - "iam:AttachRolePolicy"
+                  - "iam:PutRolePolicy"
+                  - "iam:PassRole"
+                  - "iam:TagRole"
+                Resource:
+                  - "arn:aws:iam::__DEPLOY_AWS_ACCOUNT_ID__:role/<da decidere naming dei ruoli>"
+        - PolicyName: "ManageSGEKS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:AuthorizeSecurityGroupIngress"
+                  - "ec2:AuthorizeSecurityGroupEgress"
+                Resource:
+                  - "arn:aws:ec2:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:security-group/*"
+        - PolicyName: "AccessKubernetesApi"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - eks:ListFargateProfiles
+                  - eks:DescribeNodegroup
+                  - eks:ListNodegroups
+                  - eks:ListUpdates
+                  - eks:AccessKubernetesApi
+                  - eks:ListAddons
+                  - eks:DescribeCluster
+                  - eks:DescribeAddonVersions
+                  - eks:ListClusters
+                  - eks:ListIdentityProviderConfigs
+                  - iam:ListRoles
+                Resource: "*"
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource: "arn:aws:ssm:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:parameter/*"
