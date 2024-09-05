@@ -24,9 +24,9 @@ EKS_VERSION="$(jq -r '.eksVersion' variables.json)"
 VERSION="$(jq -r '.eksVersion' variables.json)"
 DATE="{\"timestamp_build\": \"$(echo $(date +%Y-%m-%dT%H-%M-%S_%s))\"}"
 COMMIT="test"
-CLOUD_FORMATION_NAME = "cnoe-${CLUSTER_NAME}-nodegroup"
-ROLE_NAME = "cnoe-role-${CLUSTER_NAME}-cp"
-STACK_NAME = "StackPullControlplane-${CLUSTER_NAME}"
+CLOUD_FORMATION_NAME="cnoe-${CLUSTER_NAME}-nodegroup"
+ROLE_NAME="cnoe-role-${CLUSTER_NAME}-cp"
+STACK_NAME="StackPullControlplane-${CLUSTER_NAME}"
 
 
 DEBUG=1
