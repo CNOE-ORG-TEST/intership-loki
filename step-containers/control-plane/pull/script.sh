@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 # def utility functions
-. /log.sh
-. /functions.sh
+#. /log.sh
+#. /functions.sh
 
 # if some script return error the script will kill
 set -e
@@ -30,12 +30,12 @@ STACK_NAME = "StackPullControlplane-${CLUSTER_NAME}"
 
 
 DEBUG=1
-log info "DEBUG_ACTIVE=${DEBUG_ACTIVE}"
+echo "DEBUG_ACTIVE=${DEBUG_ACTIVE}"
 
 #STARTING UPDATE PLAN 
-log debug "CONTAINER VERSION: $(cat /automation_conf.json | jq -r '.release_version')"
+echo "CONTAINER VERSION: $(cat /automation_conf.json | jq -r '.release_version')"
 
-log info "sed on cloudformation_for_role.yaml"
+echo "sed on cloudformation_for_role.yaml"
 sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' /cloudformation_for_role.yaml
 sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' /cloudformation_for_role.yaml
 sed -i -e 's/__DEPLOY_AWS_REGION__/'"$DEPLOY_AWS_REGION"'/g' /cloudformation_for_role.yaml
@@ -44,7 +44,7 @@ sed -i -e 's/__CLUSTER_NAME__/'"$CLUSTER_NAME"'/g' /cloudformation_for_role.yaml
 
 cat /cloudformation_for_role.yaml
 
-log debug "\nStarting role: $(aws sts get-caller-identity --profile ${MASTER_PROFILE})"
+echo "\nStarting role: $(aws sts get-caller-identity )"
 
 aws cloudformation deploy --no-fail-on-empty-changeset --template-file /cloudformation_for_role.yaml --stack-name "${STACK_NAME}" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
 
