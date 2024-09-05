@@ -16,7 +16,7 @@ Resources:
           - Effect: "Allow"
             Principal:
               AWS:
-                - "<qua va un ruolo di argo workflow da creare"
+                - "arn:aws:iam::523753954008:role/cnoe-loki-service-account"
             Action:
               - "sts:AssumeRole"
       MaxSessionDuration: 43200
