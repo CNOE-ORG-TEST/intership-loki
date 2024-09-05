@@ -119,7 +119,7 @@ fi
 
 
 echo "Checking match net_type <-> security_group"
-# get security groups names (simil firewall for networks)
+# get security groups names
 SECURITY_GROUP_NAME="$(aws ec2 describe-security-groups --group-ids "${SECURITY_GROUP_IDS_PARAMETER}" --query "SecurityGroups[*].{Name:GroupName,ID:GroupId}" | jq -r '.[0].Name')"
 
 echo "Security group ${SECURITY_GROUP_IDS_PARAMETER}: ${SECURITY_GROUP_NAME}"
