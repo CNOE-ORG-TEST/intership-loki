@@ -46,6 +46,7 @@ echo "Cloudformation name: ${CLOUDFORMATION_NAME}"
 if [ "${CUSTOM_KUBERNETES}" = "true" ]; then
   CLUSTER_TYPE="custom"
 else
+  #check if is  federeted cluster (federeted cluster is a set of the same cluster replicated in different subnets/region)
   if [ "${IS_FEDERATED_CLUSTER}" = "true" ]; then
     >&2 echo "You are trying to deploy FEDERATED cluster with parameter CLUSTER_TYPE != custom. Federated clusters supports only CLUSTER_TYPE=custom. Please check your parameters then try again."
     exit 1
@@ -58,6 +59,7 @@ SECRET_BAMBOO_ACCESS="$(aws secretsmanager get-secret-value --secret-id "${SECRE
 AWS_ACCESS_KEY_ID="$(echo ${SECRET_BAMBOO_ACCESS} | jq -jr '. | "\(.AWS_ACCESS_KEY_ID)"')"
 AWS_SECRET_ACCESS_KEY="$(echo ${SECRET_BAMBOO_ACCESS} | jq -jr '. | "\(.AWS_SECRET_ACCESS_KEY)"')"
 
+# maybe assume new role to limited permission
 ROLE_NAME="${SC_TAG_PARAMETER,,}-${GIAS_ID_NOT_DOT_TAG_PARAMETER,,}-${CLUSTER_NAME,,}-${ENVIRONMENT,,}-role-mk8s-cp"
 ROLE_ARN="arn:aws:iam::${DEPLOY_AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
 echo "Assuming role: ${ROLE_ARN}"
@@ -69,6 +71,7 @@ export AWS_DEFAULT_REGION=${DEPLOY_AWS_REGION}
 ROLE_ASSUMED="$(aws sts get-caller-identity)"
 echo "Role assumed: ${ROLE_ASSUMED}"
 
+# download some config
 S3_URL="s3://enel-prod-infr-automation-releases-${DEPLOY_AWS_REGION}/mk8s/controlpanel/release-${BAMBOOENV}/${CONTROLPANEL_VERSION}/aws_infrastructure_packaged.yaml"
 echo "Dowloading ${S3_URL}"
 aws s3 cp "${S3_URL}" aws_infrastructure_packaged.yaml --profile "${PROJECT_PROFILE}" --region "${DEPLOY_AWS_REGION}"
@@ -77,6 +80,8 @@ echo "Dowloading ${S3_URL}"
 aws s3 cp "${S3_URL}" aws_infrastructure_configuration.json --profile "${PROJECT_PROFILE}" --region "${DEPLOY_AWS_REGION}"
 DEPLOY_CONTROLPANEL_VERSION="$(jq -r '.[] | select(.ParameterKey=="ClusterVersion") | .ParameterValue' aws_infrastructure_configuration.json)"
 
+# if federeted cluster or no lan cluster type, it's possible to have more than one lan
+# in this case check lan attributes
 if [ "${IS_FEDERATED_CLUSTER}" = "true" ] && [ "${CUSTOM_KUBERNETES}" = "true" ]; then
   echo "Check of subnets on platform is not necessary"
 elif [ "${NET_KUBERNETES_TYPE}" = "lan" ]; then
@@ -117,7 +122,7 @@ else
   done
 fi
 
-
+# each subnet must has its security group
 echo "Checking match net_type <-> security_group"
 # get security groups names
 SECURITY_GROUP_NAME="$(aws ec2 describe-security-groups --group-ids "${SECURITY_GROUP_IDS_PARAMETER}" --query "SecurityGroups[*].{Name:GroupName,ID:GroupId}" | jq -r '.[0].Name')"
@@ -138,7 +143,7 @@ ACTUAL_KUBECONF="actual-kubeconfig.yaml"
 DOMAIN="enelint"
 if [ "${IS_FEDERATED_CLUSTER}" = "true" ]; then
 
-  # incoke a lambda function to retrive kubernates clusters
+  # incoke a lambda function to retrive kubernates clusters config
   LAMBDA_NAME="enel_${BAMBOOENV}_lambda_read_ddb_platform_default_values"
   echo "Invoking Lambda: ${LAMBDA_NAME}"
   LAMBDA_PAYLOAD="$(echo "{\"sc\":\"all\", \"gias_id_dot\":\"all\", \"env\":\"all\", \"type\":\"all\"}" | jq -c)"

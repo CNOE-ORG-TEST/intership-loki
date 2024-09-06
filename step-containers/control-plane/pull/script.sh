@@ -60,4 +60,6 @@ aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cloudf
 sed -i -e 's/__VERSION__/'"$VERSION"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__DATE__/'"$DATE"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__COMMIT__/'"$COMMIT"'/g' ./cloudformation_cluster.yaml
+
+cat ./cloudformation_cluster.yaml
 #crypt
