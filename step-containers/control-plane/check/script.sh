@@ -35,13 +35,13 @@ if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "fals
       echo "OK: Cloudformation ${CLOUDFORMATION_NAME} will be created in next deploy step."
     else
       # if don't exist cluster CF but exist cluster
-      >&2 echo "KO: Cloudformation ${CLOUDFORMATION_NAME} doesn't exist but cluster ${CLUSTER_NAME} exists."
-      >&2 echo "Please check your params!"
+      >&2 colorEcho "error" "KO: Cloudformation ${CLOUDFORMATION_NAME} doesn't exist but cluster ${CLUSTER_NAME} exists."
+      >&2 colorEcho "red" "Please check your params!"
       exit 1
       # ERROR !!!
     fi
 else
-  if [ "$(existCluster "${CLUSTER_NAME}")" = "false"]; then
+  if [ "$(existCluster "${CLUSTER_NAME}")" = "true"]; then
     # if exist cluster CF and exist cluster
     CF="$(aws cloudformation describe-stacks --stack-name "${CLOUDFORMATION_NAME}" --region="${DEPLOY_AWS_REGION}" 2>&1)"
     VPC_ID_PARAMETER_TO_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="VPCIdParameter") | .ParameterValue')"
@@ -56,4 +56,9 @@ else
     checkControlpanelVsDatapanel "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}"
     checkControlpanelVsInfrpanel "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}"
     checkCFMandatoryParameters
+  else
+    >&2 colorEcho "error" "Cloudformation ${CLOUDFORMATION_NAME} exist but cluster ${CLUSTER_NAME} don't exists"
+    >&2 colorEcho "red" "Please check your params!"
+    exit 1
+    # ERROR !!!
 fi
