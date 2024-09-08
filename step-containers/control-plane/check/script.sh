@@ -43,10 +43,15 @@ if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "fals
 else
   if [ "$(existCluster "${CLUSTER_NAME}")" = "true"]; then
     # if exist cluster CF and exist cluster
+
+    # configure access to cluster
+    configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}"
+
+    # retrieve variables to check and check
     CF="$(aws cloudformation describe-stacks --stack-name "${CLOUDFORMATION_NAME}" --region="${DEPLOY_AWS_REGION}" 2>&1)"
     VPC_ID_PARAMETER_TO_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="VPCIdParameter") | .ParameterValue')"
     BE_SUBNET_IDS_PARAMETER_TO_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="SubnetIdsParameter") | .ParameterValue')"
-    ENVIRONMENT_TAG_PARAMETER_T0_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="EnvironmentTagParameter") | .ParameterValue')"
+    ENVIRONMENT_TAG_PARAMETER_TO_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="EnvironmentTagParameter") | .ParameterValue')"
     CLUSTER_NAME_TO_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="ClusterName") | .ParameterValue')"
     SECURITY_GROUP_IDS_PARAMETER_TO_CHECK="$(echo "${CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="SecurityGroupIdsParameter") | .ParameterValue')"
 
