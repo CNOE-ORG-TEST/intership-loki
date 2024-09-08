@@ -2,7 +2,7 @@
 
 # def utility functions
 #. /log.sh
-#. /functions.sh
+. /functions.sh
 
 # if some script return error the script will kill
 set -e
@@ -29,25 +29,29 @@ ROLE_NAME="cnoe-role-${CLUSTER_NAME}-cp"
 STACK_NAME="StackPullControlplane-${CLUSTER_NAME}"
 
 
-DEBUG=1
-echo "DEBUG_ACTIVE=${DEBUG_ACTIVE}"
+#DEBUG=1
+#echo "DEBUG_ACTIVE=${DEBUG_ACTIVE}"
 
-#STARTING UPDATE PLAN 
-echo "CONTAINER VERSION: $(cat /automation_conf.json | jq -r '.release_version')"
+if [  "$(existRoleCF "${ROLE_NAME}"  "${DEPLOY_AWS_REGION}")" = "false"]; then
+    echo "CONTAINER VERSION: $(cat /automation_conf.json | jq -r '.release_version')"
 
-echo "sed on cloudformation_for_role.yaml"
-sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' /cloudformation_for_role.yaml
-sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' /cloudformation_for_role.yaml
-sed -i -e 's/__DEPLOY_AWS_REGION__/'"$DEPLOY_AWS_REGION"'/g' /cloudformation_for_role.yaml
-sed -i -e 's/__CLOUDFORMATION_NAME__/'"$CLOUDFORMATION_NAME"'/g' /cloudformation_for_role.yaml
-sed -i -e 's/__CLUSTER_NAME__/'"$CLUSTER_NAME"'/g' /cloudformation_for_role.yaml
+    echo "sed on cloudformation_for_role.yaml"
+    sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' /cloudformation_for_role.yaml
+    sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' /cloudformation_for_role.yaml
+    sed -i -e 's/__DEPLOY_AWS_REGION__/'"$DEPLOY_AWS_REGION"'/g' /cloudformation_for_role.yaml
+    sed -i -e 's/__CLOUDFORMATION_NAME__/'"$CLOUDFORMATION_NAME"'/g' /cloudformation_for_role.yaml
+    sed -i -e 's/__CLUSTER_NAME__/'"$CLUSTER_NAME"'/g' /cloudformation_for_role.yaml
 
-cat /cloudformation_for_role.yaml
+    cat /cloudformation_for_role.yaml
 
-echo "\nStarting role: $(aws sts get-caller-identity )"
+    echo "\nStarting role: $(aws sts get-caller-identity )"
 
-aws cloudformation deploy --no-fail-on-empty-changeset --template-file /cloudformation_for_role.yaml --stack-name "${STACK_NAME}" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
+    aws cloudformation deploy --no-fail-on-empty-changeset --template-file /cloudformation_for_role.yaml --stack-name "${STACK_NAME}" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
+else
+    echo "Role ${ROLE_NAME} already exist"
+fi
 
+echo "Start compiling cloudformation_cluster.yaml with DATA = ${DATA}, VERSION = ${VERSION}, COMMIT = ${COMMIT}"
 cd /shared
 aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cloudformation_cluster.yaml
 
@@ -61,5 +65,5 @@ sed -i -e 's/__VERSION__/'"$VERSION"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__DATE__/'"$DATE"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__COMMIT__/'"$COMMIT"'/g' ./cloudformation_cluster.yaml
 
+echo "cloudformation_cluster.yaml compiled: \n"
 cat ./cloudformation_cluster.yaml
-#crypt
