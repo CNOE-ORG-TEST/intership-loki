@@ -73,7 +73,6 @@ function checkNewControlpanelVersion () {
 # $1 : name of the cluster to check
 # $2 : controlplane version to deploy
 # void
-# TODO verify line 95
 function checkControlpanelVsInfrpanel () {
   set +e
   # local INFRPANEL_K8S_VERSION="$(kubectl --kubeconfig="${ACTUAL_KUBECONF}" --context="${DOMAIN}" get cm cm-version -n kube-system -o "jsonpath={.data.version}")"
@@ -98,7 +97,7 @@ function checkControlpanelVsInfrpanel () {
 # $1 : name of the cluster to check
 # $2 : controlplane version to deploy
 # void
-# TODO verify if the new implementation is valid
+# TODO verify if the new implementation is valid (scriptOld 400)
 function checkControlpanelVsDatapanel () {
   set +e
   # local DATAPANEL_K8S_VERSION="$(kubectl --kubeconfig="${ACTUAL_KUBECONF}" --context="${DOMAIN}" get cm cm-version -n kube-system -o "jsonpath={.data.version}")"
