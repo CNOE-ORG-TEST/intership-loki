@@ -138,26 +138,38 @@ function checkControlpanelVsInfrpanel () {
 # check if controlplane version is compatible with dataplane version
 # $1 : name of the cluster to check
 # $2 : controlplane version to deploy
+# $3 : region where deploy
 # void
-# TODO verify if the new implementation is valid (scriptOld 400)
 function checkControlpanelVsDatapanel () {
-  set +e
-  # local DATAPANEL_K8S_VERSION="$(kubectl --kubeconfig="${ACTUAL_KUBECONF}" --context="${DOMAIN}" get cm cm-version -n kube-system -o "jsonpath={.data.version}")"
-  local DATAPANEL_K8S_VERSION="$(kubectl get cm cm-dataplane-data -n kube-system -o "jsonpath={.data.version}")"
-  local RETURN_CODE=$?
-  set -e
-  if [ "${RETURN_CODE}" -eq 0 ]; then
-    echo "Checking controlpanel version accross infrpanel version.\nInfrpanel version ${INFRPANEL_K8S_VERSION}"
-    local CONTROLPANEL_NEXT_VERSION=$( (echo "$DATAPANEL_K8S_VERSION + 0.01") | bc )
-    local CONTROLPANEL_PERMITTED_VERSIONS=( "${DATAPANEL_K8S_VERSION}" "${CONTROLPANEL_NEXT_VERSION}" )
-    if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then
-      colorEcho "error" "${2} NOT permitted! Please check your dataplane version.\nExiting..."
-      exit 1
+    #CHECK CONTROL PANEL VERSION WITH CURRENT DATA PANEL VERSIONS
+    echo "Checking controlpanel version accross datapanel versions"
+    downloadAutomationConfJson "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}"
+    if [ "$(repoExist "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}")" = "true" ]; then
+        echo "The datapanel exits, checking the versions"
+        mapfile -t ALL_NODEGROUPS_NAMES_CF< <(jq -r '.nodegroups[].datapanel_cloudformation_name' "automation_conf.json")
+        for NODEGROUP_NAME_CF in "${ALL_NODEGROUPS_NAMES_CF[@]}"; do
+          set +e
+          local INFO_NODEGROUP_NAME_CF="$(aws cloudformation describe-stacks --stack-name "${NODEGROUP_NAME_CF}" --region="${3}" 2>&1)"
+          local RETURN_CODE=$?
+          set -e
+
+          if [ "${RETURN_CODE}" -eq 0 ] && [[ "${INFO_NODEGROUP_NAME_CF}" != *"Stack with id ${INFO_NODEGROUP_NAME_CF} does not exist"* ]]; then
+            local NODEGROUP_VERSION="$(echo "${INFO_NODEGROUP_NAME_CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="NodeImageIdSSMParam") | .ParameterValue' | cut -d "/" -f6 )"
+            echo "Name stack datapanel ${NODEGROUP_NAME_CF} has the version: ${NODEGROUP_VERSION}"
+            local CONTROLPANEL_NEXT_VERSION=$( (echo "$NODEGROUP_VERSION + 0.01") | bc )
+            local CONTROLPANEL_PERMITTED_VERSIONS=("${NODEGROUP_VERSION}" "${CONTROLPANEL_NEXT_VERSION}")
+            if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${DEPLOY_CONTROLPANEL_VERSION} ]]; then
+              >&2 colorEcho "error" "${2} NOT permitted! Please check your datapanel version.\nExiting..."
+              exit 1
+            fi
+          else
+            echo "Stack of datapanel with name ${NODEGROUP_NAME_CF} doesn't exist"
+          fi
+        done
+
+    else
+      echo "The datapanel doesn't exist! No check with version necessary."
     fi
-  else
-    >&2 colorEcho "error" "Control of compatibility between controlplane version and  datapanel version not possible, the config map cm-dataplane-data isn't present on cluster ${1}."
-    exit 1
-  fi
 }
 
 # check correspondence of mandatory values

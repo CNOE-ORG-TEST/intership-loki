@@ -60,7 +60,7 @@ else
     echo "Checking before update cloudformation => CLOUDFORMATION_NAME=${CLOUDFORMATION_NAME}"
 
     checkNewControlpanelVersion "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}"
-    checkControlpanelVsDatapanel "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}"
+    checkControlpanelVsDatapanel "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}" "${DEPLOY_AWS_REGION}"
     checkControlpanelVsInfrpanel "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}"
     checkCFMandatoryParameters
   else
