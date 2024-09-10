@@ -1,4 +1,5 @@
 . /log.sh
+. /function.sh
 
 
 # assign new role (created in pull step) to service account
