@@ -12,6 +12,48 @@ function assignRoleToServiceAccount () {
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
 
+# check if exist vpc
+# $1 : id of the vpc to check
+# return : string ( "true" if VPC exist, "false" otherwise )
+function existVPC () {
+  #echo "checking if vpc: ${1} exist ..."
+  local VPC_EXISTS=$(aws ec2 describe-vpcs --filters "Name=vpc-id,Values=${1}" --query "Vpcs" --output text)
+  if [[ -n "$VPC_EXISTS" ]]; then
+      echo "true"
+  else
+      echo "false"
+  fi
+}
+
+# check if exist frontend/backend vpc
+# $1 : ids of frontend vpc
+# $2 : ids of backend vpc
+# void
+function checkVPCs () {
+  echo "Checking subnets frontend/backend"
+  local FE_SUBNETS=$(echo "${1}" | tr "," " ")
+  mapfile -t ARR_SUBNETS_FE < <(aws ec2 describe-subnets --subnet-ids ${FE_SUBNETS} | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
+  local BE_SUBNETS=$(echo "${2}" | tr "," " ")
+  mapfile -t ARR_SUBNETS_BE < <(aws ec2 describe-subnets --subnet-ids ${BE_SUBNETS} | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
+  echo "Checking backend subnets ${ARR_SUBNETS_BE[*]}"
+  for BE_SUBNET in "${ARR_SUBNETS_BE[@]}"; do
+    if ["$(existVPC BE_SUBNET)" = "true"]; then
+      echo "${BE_SUBNET} vpc exist"
+    else
+      colorEcho "error" "${BE_SUBNET} doesn't exist !!"
+      exit 1
+    fi
+  done
+  for FE_SUBNET in "${ARR_SUBNETS_FE[@]}"; do
+    if ["$(existVPC FE_SUBNET)" = "true"]; then
+      echo "${FE_SUBNET} vpc exist"
+    else
+      colorEcho "error" "${FE_SUBNET} doesn't exist !!"
+      exit 1
+    fi
+  done
+}
+
 # check if exist cluster cloud formation
 # $1 : name of the cluster cloud formation to check
 # $2 : region where deploy the cluster

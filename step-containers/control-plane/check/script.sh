@@ -26,6 +26,8 @@ ROLE_ARN="arn:aws:iam::${DEPLOY_AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
 
 assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
 
+checkVPCs "${FE_SUBNET_IDS_PARAMETER}" "${BE_SUBNET_IDS_PARAMETER}"
+
 if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false"]; then
     # if don't exist cluster CF
     echo "Cloudformation ${CLOUDFORMATION_NAME} doesn't exist. Checking existence of cluster: ${CLUSTER_NAME_EXTENDED}"
