@@ -65,5 +65,21 @@ sed -i -e 's/__VERSION__/'"$VERSION"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__DATE__/'"$DATE"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__COMMIT__/'"$COMMIT"'/g' ./cloudformation_cluster.yaml
 
+# TODO compile json
+# sed -i -e "s?__CUSTOMER_TAG_PARAMETER__?${CUSTOMER_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__ENVIRONMENT_TAG_PARAMETER__?${ENVIRONMENT_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__GIASID_NAME_TAG_PARAMETER__?${GIAS_NAME_TAG_PARAMETER//&/\\&}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__GIASID_TAG_PARAMETER__?${GIAS_ID_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__GIASIDNODOT_TAG_PARAMETER__?${GIAS_ID_NOT_DOT_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__PROJECT_TAG_PARAMETER__?${PROJECT_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__RUNNING_TAG_PARAMETER__?${RUNNING_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__ROLE_TAG_PARAMETER__?${ROLE_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__BACKUP_PARAMETER__?${BACKUP_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__CLUSTERNAME_PARAMETER__?${CLUSTER_NAME}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__SUBNETIDS_PARAMETER__?${BE_SUBNET_IDS_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__VPCID_PARAMETER__?${VPC_ID_PARAMETER}?g" ./aws_infrastructure_configuration.json
+# sed -i -e "s?__SECURITYGROUPIDS_PARAMETER__?${SECURITY_GROUP_IDS_PARAMETER}?g" ./aws_infrastructure_configuration.json
+
+
 echo "cloudformation_cluster.yaml compiled: \n"
 cat ./cloudformation_cluster.yaml
