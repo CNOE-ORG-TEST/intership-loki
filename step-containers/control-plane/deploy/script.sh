@@ -5,13 +5,12 @@ set -e
 cd /shared
 
 CLUSTER_NAME="$(jq -r '.clusterName' ./variables.json)"
-ENVIRONMENT_TAG_PARAMETER="$(jq -r '.environment' ./variables.json)"
-ENVIRONMENT="$(jq -r '.environment' ./variables.json)"
-SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIdsParameter' ./variables.json)"
-FE_SUBNET_IDS_PARAMETER="$(jq -r '.feSubnetIdsParameter' ./variables.json)"
-BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIdsParameter' ./variables.json)"
-VPC_ID_PARAMETER="$(jq -r '.vpcIdParameter' ./variables.json)"
-DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.account' ./variables.json)"
+ENVIRONMENT_TAG_PARAMETER="$(jq -r '.env' ./variables.json)"
+SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIds' ./variables.json)"
+FE_SUBNET_IDS_PARAMETER="$(jq -r '.feSubnetIds' ./variables.json)"
+BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIds' ./variables.json)"
+VPC_ID_PARAMETER="$(jq -r '.vpcId' ./variables.json)"
+DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' ./variables.json)"
 DEPLOY_AWS_REGION="$(jq -r '.region' ./variables.json)"
 # from deploy_and_release_variables.json
 CONTROLPANEL_VERSION="$(jq -r '.eksVersion' ./variables.json)"
