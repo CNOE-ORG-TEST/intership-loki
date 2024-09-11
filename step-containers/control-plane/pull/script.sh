@@ -20,8 +20,14 @@ cat variables.json
 CLUSTER_NAME="$(jq -r '.clusterName' variables.json)"
 DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' variables.json)"
 DEPLOY_AWS_REGION="$(jq -r '.region' variables.json)"
+ENVIRONMENT_TAG_PARAMETER = "$(jq -r '.env' variables.json)"
+BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIdsParameter' ./variables.json)"
+VPC_ID_PARAMETER="$(jq -r '.vpcIdParameter' ./variables.json)"
 EKS_VERSION="$(jq -r '.eksVersion' variables.json)"
+SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIdsParameter' ./variables.json)"
+# derivated or fixed
 VERSION="$(jq -r '.eksVersion' variables.json)"
+ROLE_TAG_PARAMETER = "application"
 DATE="{\"timestamp_build\": \"$(echo $(date +%Y-%m-%dT%H-%M-%S_%s))\"}"
 COMMIT="test"
 CLOUD_FORMATION_NAME="cnoe-${CLUSTER_NAME}-nodegroup"
@@ -54,6 +60,7 @@ fi
 echo "Start compiling cloudformation_cluster.yaml with DATA = ${DATA}, VERSION = ${VERSION}, COMMIT = ${COMMIT}"
 cd /shared
 aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cloudformation_cluster.yaml
+aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cluster_parameters.json
 
 #sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' ./cloudformation_cluster.yaml
 #sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' ./cloudformation_cluster.yaml
@@ -65,21 +72,17 @@ sed -i -e 's/__VERSION__/'"$VERSION"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__DATE__/'"$DATE"'/g' ./cloudformation_cluster.yaml
 sed -i -e 's/__COMMIT__/'"$COMMIT"'/g' ./cloudformation_cluster.yaml
 
-# TODO compile json
-# sed -i -e "s?__CUSTOMER_TAG_PARAMETER__?${CUSTOMER_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__ENVIRONMENT_TAG_PARAMETER__?${ENVIRONMENT_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__GIASID_NAME_TAG_PARAMETER__?${GIAS_NAME_TAG_PARAMETER//&/\\&}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__GIASID_TAG_PARAMETER__?${GIAS_ID_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__GIASIDNODOT_TAG_PARAMETER__?${GIAS_ID_NOT_DOT_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__PROJECT_TAG_PARAMETER__?${PROJECT_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__RUNNING_TAG_PARAMETER__?${RUNNING_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__ROLE_TAG_PARAMETER__?${ROLE_TAG_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__BACKUP_PARAMETER__?${BACKUP_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__CLUSTERNAME_PARAMETER__?${CLUSTER_NAME}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__SUBNETIDS_PARAMETER__?${BE_SUBNET_IDS_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__VPCID_PARAMETER__?${VPC_ID_PARAMETER}?g" ./aws_infrastructure_configuration.json
-# sed -i -e "s?__SECURITYGROUPIDS_PARAMETER__?${SECURITY_GROUP_IDS_PARAMETER}?g" ./aws_infrastructure_configuration.json
+
+sed -i -e "s?__ENVIRONMENT_TAG_PARAMETER__?${ENVIRONMENT_TAG_PARAMETER}?g" /shared/cluster_parameters.json
+sed -i -e "s?__ROLE_TAG_PARAMETER__?${ROLE_TAG_PARAMETER}?g" /shared/cluster_parameters.json
+sed -i -e "s?__CLUSTERNAME_PARAMETER__?${CLUSTER_NAME}?g" /shared/cluster_parameters.json
+sed -i -e "s?__SUBNETIDS_PARAMETER__?${BE_SUBNET_IDS_PARAMETER}?g" /shared/cluster_parameters.json
+sed -i -e "s?__VPCID_PARAMETER__?${VPC_ID_PARAMETER}?g" /shared/cluster_parameters.json
+sed -i -e "s?__SECURITYGROUPIDS_PARAMETER__?${SECURITY_GROUP_IDS_PARAMETER}?g" /shared/cluster_parameters.json
 
 
 echo "cloudformation_cluster.yaml compiled: \n"
 cat ./cloudformation_cluster.yaml
+
+
+#aws_infrastructure_configuration.json
