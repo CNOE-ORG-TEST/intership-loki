@@ -13,9 +13,9 @@ function assignRoleToServiceAccount () {
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
 
-# check if exist vpc
-# $1 : id of the vpc to check
-# return : string ( "true" if VPC exist, "false" otherwise )
+# check if exist subnet
+# $1 : id of the subnet to check
+# return : string ( "true" if subnet exist, "false" otherwise )
 function existSubnet () {
   #echo "checking if vpc: ${1} exist ..."
   local VPC_EXISTS=$(aws ec2 describe-vpcs --filters "Name=vpc-id,Values=${1}" --query "Vpcs" --output text)
@@ -23,6 +23,20 @@ function existSubnet () {
       echo "true"
   else
       echo "false"
+  fi
+}
+
+# check if exist vpc
+# $1 : id of the vpc to check
+# void
+function checkVPC () {
+  local VPC_EXISTS=$(aws ec2 describe-vpcs --filters "Name=vpc-id,Values=${1}" --query "Vpcs" --output text)
+
+  if [[ -n "$VPC_EXISTS" ]]; then
+      echo "VPC ${1} exist"
+  else
+      >&2 colorEcho "error" "VPC ${1} doesn't exist."
+      exit 1
   fi
 }
 
@@ -41,9 +55,10 @@ function checkSubnets () {
   for SUBNET in ${FE_SUBNETS}; do
       if [[ "$(existSubnet "${SUBNET}")" == "true" ]]; then
           SUBNET_NAME=$(aws ec2 describe-subnets --subnet-ids "${SUBNET}" | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
-          echo "Subnet ${SUBNET} esiste con nome: ${SUBNET_NAME}"
+          echo "Subnet ${SUBNET} exist with name: ${SUBNET_NAME}"
       else
-          echo "Subnet ${SUBNET} non esiste."
+          >&2 colorEcho "error" "Subnet ${SUBNET} doesn't exist."
+          exit 1
       fi
   done
 
@@ -51,9 +66,10 @@ function checkSubnets () {
   for SUBNET in ${BE_SUBNETS}; do
       if [[ "$(existSubnet "${SUBNET}")" == "true" ]]; then
           SUBNET_NAME=$(aws ec2 describe-subnets --subnet-ids "${SUBNET}" | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
-          echo "Subnet ${SUBNET} esiste con nome: ${SUBNET_NAME}"
+          echo "Subnet ${SUBNET} exist with name: ${SUBNET_NAME}"
       else
-          echo "Subnet ${SUBNET} non esiste."
+          >&2 colorEcho "error" "Subnet ${SUBNET} doesn't exist."
+          exit 1
       fi
   done
 }
@@ -110,7 +126,7 @@ function checkNewControlpanelVersion () {
 
   echo "Permitted version controlpanel: ${CONTROLPANEL_PERMITTED_VERSIONS[*]}"
   if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then
-    colorEcho "error" "${2} NOT permitted! Please check your controlpanel version.\nExiting..."
+    >&2 colorEcho "error" "${2} NOT permitted! Please check your controlpanel version.\nExiting..."
     exit 1
   fi
 }
@@ -130,7 +146,7 @@ function checkControlpanelVsInfrpanel () {
     local CONTROLPANEL_NEXT_VERSION=$( (echo "$INFRPANEL_K8S_VERSION + 0.01") | bc )
     local CONTROLPANEL_PERMITTED_VERSIONS=( "${INFRPANEL_K8S_VERSION}" "${CONTROLPANEL_NEXT_VERSION}" )
     if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then
-      colorEcho "error" "${2} NOT permitted! Please check your infrplane version.\nExiting..."
+      >&2 colorEcho "error" "${2} NOT permitted! Please check your infrplane version.\nExiting..."
       exit 1
     fi
   else
