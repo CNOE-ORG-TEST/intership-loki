@@ -5,7 +5,6 @@ RUN apk --no-cache add binutils wget unzip && wget https://s3.amazonaws.com/aws-
 COPY automation_conf.json /automation_conf.json
 COPY log.sh /log.sh
 COPY waiting_logs.py /waiting_logs.py
-COPY functions.sh /functions.sh
 COPY script.sh /script.sh
 COPY subSteps.sh /subSteps.sh
 
