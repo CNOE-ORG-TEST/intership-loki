@@ -76,6 +76,7 @@ sed -i -e 's/__COMMIT__/'"$COMMIT"'/g' ./cloudformation_cluster.yaml
 sed -i -e "s?__ENVIRONMENT_TAG_PARAMETER__?${ENVIRONMENT_TAG_PARAMETER}?g" /shared/cluster_parameters.json
 sed -i -e "s?__ROLE_TAG_PARAMETER__?${ROLE_TAG_PARAMETER}?g" /shared/cluster_parameters.json
 sed -i -e "s?__CLUSTERNAME_PARAMETER__?${CLUSTER_NAME}?g" /shared/cluster_parameters.json
+sed -i -e "s?__CLUSTERVERSION_PARAMETER__?${EKS_VERSION}?g" /shared/cluster_parameters.json
 sed -i -e "s?__SUBNETIDS_PARAMETER__?${BE_SUBNET_IDS_PARAMETER}?g" /shared/cluster_parameters.json
 sed -i -e "s?__VPCID_PARAMETER__?${VPC_ID_PARAMETER}?g" /shared/cluster_parameters.json
 sed -i -e "s?__SECURITYGROUPIDS_PARAMETER__?${SECURITY_GROUP_IDS_PARAMETER}?g" /shared/cluster_parameters.json
