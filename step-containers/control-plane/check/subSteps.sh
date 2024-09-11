@@ -30,7 +30,7 @@ function existSubnet () {
 # $1 : ids of frontend subnet
 # $2 : ids of backend subnet
 # void
-function checkSunets () {
+function checkSubnets () {
   echo "Checking subnets frontend/backend"
   local FE_SUBNETS=$(echo "${1}" | tr "," " ")
   mapfile -t ARR_SUBNETS_FE < <(aws ec2 describe-subnets --subnet-ids ${FE_SUBNETS} | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
