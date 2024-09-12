@@ -38,7 +38,7 @@ STACK_NAME="StackPullControlplane-${CLUSTER_NAME}"
 #DEBUG=1
 #echo "DEBUG_ACTIVE=${DEBUG_ACTIVE}"
 
-if [  "$(existRoleCF "${ROLE_NAME}"  "${DEPLOY_AWS_REGION}")" = "false"]; then
+if [ "$(existRoleCF "${ROLE_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
     echo "CONTAINER VERSION: $(cat /automation_conf.json | jq -r '.release_version')"
 
     echo "sed on cloudformation_for_role.yaml"

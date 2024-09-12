@@ -7,8 +7,8 @@
 # $2 : region where deploy the cluster
 # void
 function assignRoleToServiceAccount () {
-  echo "Assuming role: ${$1}"
-  aws sts assume-role --role-arn "${$1}" --role-session-name=session-role-controlplane-$$ --region "${$2}" --duration-seconds 43200
+  echo "Assuming role: ${1}"
+  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-controlplane-$$ --region "${2}" --duration-seconds 43200
   local ROLE_ASSUMED="$(aws sts get-caller-identity)"
   echo "Role assumed: ${ROLE_ASSUMED}"
 }

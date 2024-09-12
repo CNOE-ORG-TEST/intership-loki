@@ -5,8 +5,8 @@
 set -e
 
 cd /shared
-ls -la
 cat /shared/variables.json
+
 
 # from ./variables.json
 CLUSTER_NAME="$(jq -r '.clusterName' /shared/variables.json)"
