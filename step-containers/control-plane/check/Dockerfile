@@ -8,6 +8,7 @@ RUN wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v1
 
 COPY automation_conf.json /automation_conf.json
 COPY log.sh /log.sh
+COPY function.sh /function.sh
 COPY subSteps.sh /subSteps.sh
 COPY empty_kubeconfig.yaml /empty_kubeconfig.yaml
 COPY script.sh /script.sh

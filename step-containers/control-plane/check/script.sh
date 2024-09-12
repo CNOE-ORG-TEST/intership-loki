@@ -5,20 +5,21 @@
 set -e
 
 cd /shared
-cat ./variables.json
+ls -la
+cat /shared/variables.json
 
 # from ./variables.json
-CLUSTER_NAME="$(jq -r '.clusterName' ./variables.json)"
-ENVIRONMENT_TAG_PARAMETER="$(jq -r '.env' ./variables.json)"
-SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIds' ./variables.json)"
-FE_SUBNET_IDS_PARAMETER="$(jq -r '.feSubnetIds' ./variables.json)"
-BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIds' ./variables.json)"
-VPC_ID_PARAMETER="$(jq -r '.vpcId' ./variables.json)"
-DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' ./variables.json)"
-DEPLOY_AWS_REGION="$(jq -r '.region' ./variables.json)"
+CLUSTER_NAME="$(jq -r '.clusterName' /shared/variables.json)"
+ENVIRONMENT_TAG_PARAMETER="$(jq -r '.env' /shared/variables.json)"
+SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIds' /shared/variables.json)"
+FE_SUBNET_IDS_PARAMETER="$(jq -r '.feSubnetIds' /shared/variables.json)"
+BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIds' /shared/variables.json)"
+VPC_ID_PARAMETER="$(jq -r '.vpcId' /shared/variables.json)"
+DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' /shared/variables.json)"
+DEPLOY_AWS_REGION="$(jq -r '.region' /shared/variables.json)"
 # from deploy_and_release_variables.json
 CLOUDFORMATION_NAME="cnoe-${CLUSTER_NAME}-controlpanel"
-CONTROLPANEL_VERSION="$(jq -r '.eksVersion' ./variables.json)"
+CONTROLPANEL_VERSION="$(jq -r '.eksVersion' /shared/variables.json)"
 # derived parameters
 ROLE_NAME="cnoe-role-${CLUSTER_NAME}-cp"
 ROLE_ARN="arn:aws:iam::${DEPLOY_AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
