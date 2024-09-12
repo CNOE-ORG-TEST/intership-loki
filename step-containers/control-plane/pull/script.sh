@@ -9,7 +9,7 @@ set -e
 
 # clone variables config repo
 cd /shared
-curl -H "Authorization: Bearer ${GITHUB_TOKEN}" -L "https://raw.githubusercontent.com/${GITHUB_REPO}/main/variables.json" > variables.json
+curl -H "Authorization: Bearer ${GITHUB_TOKEN}" -L "https://raw.githubusercontent.com/${GITHUB_REPO}/main/variables.json" > /shared/variables.json
 cat variables.json
 
 # setup deploy_and_release_variables.json
@@ -59,8 +59,8 @@ fi
 
 echo "Start compiling cloudformation_cluster.yaml with DATA = ${DATA}, VERSION = ${VERSION}, COMMIT = ${COMMIT}"
 cd /shared
-aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cloudformation_cluster.yaml
-aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml ./cluster_parameters.json
+aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml /shared/cloudformation_cluster.yaml
+aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml /shared/cluster_parameters.json
 
 #sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' ./cloudformation_cluster.yaml
 #sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' ./cloudformation_cluster.yaml
@@ -81,6 +81,7 @@ sed -i -e "s?__SUBNETIDS_PARAMETER__?${BE_SUBNET_IDS_PARAMETER}?g" /shared/clust
 sed -i -e "s?__VPCID_PARAMETER__?${VPC_ID_PARAMETER}?g" /shared/cluster_parameters.json
 sed -i -e "s?__SECURITYGROUPIDS_PARAMETER__?${SECURITY_GROUP_IDS_PARAMETER}?g" /shared/cluster_parameters.json
 
+cd /shared
 
 echo "Show Compiled cloudformation_cluster.yaml file: \n"
 cat ./cloudformation_cluster.yaml
