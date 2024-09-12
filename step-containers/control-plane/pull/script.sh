@@ -82,8 +82,12 @@ sed -i -e "s?__VPCID_PARAMETER__?${VPC_ID_PARAMETER}?g" /shared/cluster_paramete
 sed -i -e "s?__SECURITYGROUPIDS_PARAMETER__?${SECURITY_GROUP_IDS_PARAMETER}?g" /shared/cluster_parameters.json
 
 
-echo "cloudformation_cluster.yaml compiled: \n"
+echo "Show Compiled cloudformation_cluster.yaml file: \n"
 cat ./cloudformation_cluster.yaml
+
+echo "\n\n\n"
+echo "Show Compiled cluster_parameters.json file"
+cat /shared/cluster_parameters.json
 
 
 #aws_infrastructure_configuration.json
