@@ -24,6 +24,7 @@ CONTROLPANEL_VERSION="$(jq -r '.eksVersion' /shared/variables.json)"
 ROLE_NAME="cnoe-role-${CLUSTER_NAME}-cp"
 ROLE_ARN="arn:aws:iam::${DEPLOY_AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
 
+aws sts get-caller-identity
 assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
 
 checkVPC "${VPC_ID_PARAMETER}"
