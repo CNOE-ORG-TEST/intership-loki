@@ -19,13 +19,19 @@ function assignRoleToServiceAccount () {
 # $1 : id of the subnet to check
 # return : string ( "true" if subnet exist, "false" otherwise )
 function existSubnet () {
-  #echo "checking if vpc: ${1} exist ..."
-  local VPC_EXISTS=$(aws ec2 describe-vpcs --filters "Name=vpc-id,Values=${1}" --query "Vpcs" --output text)
-  if [[ -n "$VPC_EXISTS" ]]; then
-      echo "true"
-  else
-      echo "false"
-  fi
+    set +e
+    local SUB=$(aws ec2 describe-subnets --subnet-ids ${1} --query "Subnets[0].SubnetId" --output text 2>&1)
+    local RETURN_CODE=$?
+    set -e
+
+    if [[ "${SUB}" == *"InvalidSubnetID.NotFound"* ]]; then
+        echo "false"
+    elif [ "${RETURN_CODE}" -ne 0 ]; then
+        >&2 echo "Error: ${SUB}"
+        exit 1
+    else
+        echo "true"
+    fi
 }
 
 # check if exist vpc
@@ -55,7 +61,7 @@ function checkSubnets () {
 
   echo "Checking frontend subnets ${ARR_SUBNETS_BE[*]}"
   for SUBNET in ${FE_SUBNETS}; do
-      if [[ "$(existSubnet "${SUBNET}")" == "true" ]]; then
+      if [ "$(existSubnet "${SUBNET}")" = "true" ]; then
           SUBNET_NAME=$(aws ec2 describe-subnets --subnet-ids "${SUBNET}" | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
           echo "Subnet ${SUBNET} exist with name: ${SUBNET_NAME}"
       else
@@ -66,7 +72,7 @@ function checkSubnets () {
 
   echo "Checking backend subnets ${ARR_SUBNETS_BE[*]}"
   for SUBNET in ${BE_SUBNETS}; do
-      if [[ "$(existSubnet "${SUBNET}")" == "true" ]]; then
+      if [ "$(existSubnet "${SUBNET}")" = "true" ]; then
           SUBNET_NAME=$(aws ec2 describe-subnets --subnet-ids "${SUBNET}" | jq -cr '.Subnets[].Tags[] | select(.Key=="Name") | .Value | @sh')
           echo "Subnet ${SUBNET} exist with name: ${SUBNET_NAME}"
       else

@@ -73,4 +73,5 @@ else
     >&2 colorEcho "red" "Please check your params!"
     exit 1
     # ERROR !!!
+  fi
 fi
