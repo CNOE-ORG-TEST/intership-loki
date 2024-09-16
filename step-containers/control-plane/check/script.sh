@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-. /subSteps.sh
+. ./subSteps.sh
 
 set -e
 

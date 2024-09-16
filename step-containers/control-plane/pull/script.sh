@@ -60,7 +60,7 @@ fi
 echo "Start compiling cloudformation_cluster.yaml with DATA = ${DATA}, VERSION = ${VERSION}, COMMIT = ${COMMIT}"
 cd /shared
 aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml /shared/cloudformation_cluster.yaml
-aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_cluster.yaml /shared/cluster_parameters.json
+aws s3 cp s3://cnoe-loki-manifest-templates/cluster_parameters.json /shared/cluster_parameters.json
 
 #sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' ./cloudformation_cluster.yaml
 #sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' ./cloudformation_cluster.yaml

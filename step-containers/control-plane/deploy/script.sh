@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+. ./subSteps.sh
+
 set -e
 
 cd /shared
@@ -23,8 +25,10 @@ cd /
 
 assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
 
-if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false"]; then
-      deployCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}"  "${ENVIRONMENT_TAG_PARAMETER}"
+if [ "$(existClusterCF "${CONTROL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
+      echo "dentrooooo new !!!!!!!!!!!!!!!!!!!!!!!!"
+      deployCF "${CONTROL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}"  "${ENVIRONMENT_TAG_PARAMETER}"
 else
-      updateCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}"  "${ENVIRONMENT_TAG_PARAMETER}"
+      echo "dentrooooo update !!!!!!!!!!!!!!!!!!!!!!!!"
+      updateCF "${CONTROL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}"  "${ENVIRONMENT_TAG_PARAMETER}"
 fi

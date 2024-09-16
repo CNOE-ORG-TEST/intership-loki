@@ -6,8 +6,8 @@
 # $2 : region where deploy the cluster
 # void
 function assignRoleToServiceAccount () {
-  echo "Assuming role: ${$1}"
-  aws sts assume-role --role-arn "${$1}" --role-session-name=session-role-controlplane-$$ --region "${$2}" --duration-seconds 3600
+  echo "Assuming role: ${1}"
+  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-controlplane-$$ --region "${2}" --duration-seconds 3600
   local ROLE_ASSUMED="$(aws sts get-caller-identity)"
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
@@ -18,11 +18,15 @@ function assignRoleToServiceAccount () {
 # return : string ( "true" if CF exist, "false" otherwise )
 function existClusterCF () {
   set +e
-  local CF="$(aws cloudformation describe-stacks --stack-name "${1}" --region="${2}" 2>&1)"
+  local CF
+  CF="$(aws cloudformation describe-stacks --stack-name "${1}" --region="${2}" 2>&1)"
   local RETURN_CODE=$?
   set -e
-  if [ "${RETURN_CODE}" -ne 0 ] && [[ "${CF}" == *"Stack with id ${CLOUDFORMATION_NAME} does not exist"* ]]; then
+  if [ "${RETURN_CODE}" -ne 0 ] && [[ "${CF}" == *"Stack with id ${1} does not exist"* ]]; then
     echo "false"
+  elif [ "${RETURN_CODE}" -ne 0 ]; then
+    >&2 colorEcho "error" "${CF}"
+    exit 1
   else
     echo "true"
   fi
@@ -34,13 +38,17 @@ function existClusterCF () {
 # return : string ( "true" if cluster exist, "false" otherwise )
 function existCluster () {
   set +e
-  local EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
+  local EKS_DESCRIPTION
+  EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
   local RETURN_CODE=$?
   set -e
-  if [ "${RETURN_CODE}" -eq 0 ]; then
-    echo "true"
-  else
+  if [ "${RETURN_CODE}" -ne 0 ] && [[ "${EKS_DESCRIPTION}" == *"ResourceNotFoundException"* ]]; then
     echo "false"
+  elif [ "${RETURN_CODE}" -ne 0 ]; then
+    >&2 colorEcho "error" "${EKS_DESCRIPTION}"
+    exit 1
+  else
+    echo "true"
   fi
 }
 
@@ -57,11 +65,12 @@ function configureClusterAccess() {
 # $2 : region where deploy
 # $3 : value to assign to Env tag
 # void
-# TODO setup aws_infrastructure_configuration.json
 function deployCF(){
     echo "Cloudformation ${1} doesn't exist.\nDeploying cloudformation ${1}"
     cd /shared
-    aws cloudformation create-stack --stack-name "${1}" --parameters file://aws_infrastructure_configuration.json --template-body "file://shared/cloudformation_cluster.yaml" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --tags "[{\"Key\":\"Env\",\"Value\":\"${3}\"}]" --region "${2}" #--role-arn "${ROLE_ARN}"
+    echo "Parameters:"
+    cat ./cluster_parameters.json
+    aws cloudformation create-stack --stack-name "${1}" --parameters file:///shared/cluster_parameters.json --template-body "file:///shared/cloudformation_cluster.yaml" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --tags "[{\"Key\":\"Env\",\"Value\":\"${3}\"}]" --region "${2}" #--role-arn "${ROLE_ARN}"
     aws cloudformation wait stack-create-complete --stack-name "${1}" --region "${2}"
     cd /
 }
@@ -71,12 +80,11 @@ function deployCF(){
 # $2 : region where deploy
 # $3 : value to assign to Env tag
 # void
-# TODO setup aws_infrastructure_configuration.json
 function updateCF(){
     echo "Cloudformation ${1} exist.\nChecking if change are present before to update the stack ${1}"
     local CHANGE_SETS_NAME="change-set-update-$RANDOM"
     # update
-    aws cloudformation create-change-set --stack-name "${1}" --change-set-name ${CHANGE_SETS_NAME} --change-set-type UPDATE --parameters file://aws_infrastructure_configuration.json --template-body "file://shared/cloudformation_cluster.yaml"  --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --region "${2}" #--role-arn "${ROLE_ARN}"
+    aws cloudformation create-change-set --stack-name "${1}" --change-set-name ${CHANGE_SETS_NAME} --change-set-type UPDATE --parameters file:///shared/cluster_parameters.json --template-body "file:///shared/cloudformation_cluster.yaml"  --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --region "${2}" #--role-arn "${ROLE_ARN}"
     set +e
     aws cloudformation wait change-set-create-complete --change-set-name ${CHANGE_SETS_NAME} --stack-name "${1}" --region "${2}"
     local RETURN_CODE=$?
@@ -117,7 +125,7 @@ function updateCF(){
     python /waiting_logs.py &  #Start waiting logs
 
     set +e
-    update_output=$(aws cloudformation update-stack --stack-name "${1}" --parameters file://aws_infrastructure_configuration.json --template-body "file://shared/cloudformation_cluster.yaml" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --tags "[{\"Key\":\"Env\",\"Value\":\"${3}\"}]" --region "${2}" ) #--role-arn "${ROLE_ARN}" 2>&1)
+    update_output=$(aws cloudformation update-stack --stack-name "${1}" --parameters file:///shared/cluster_parameters.json --template-body "file:///shared/cloudformation_cluster.yaml" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --tags "[{\"Key\":\"Env\",\"Value\":\"${3}\"}]" --region "${2}" ) #--role-arn "${ROLE_ARN}" 2>&1)
     status=$?
     echo "${update_output}"
     set -e
