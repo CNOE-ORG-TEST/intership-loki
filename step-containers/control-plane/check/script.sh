@@ -33,10 +33,10 @@ checkSubnets "${FE_SUBNET_IDS_PARAMETER}" "${BE_SUBNET_IDS_PARAMETER}"
 
 
 
-if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false"]; then
+if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
     # if don't exist cluster CF
     echo "Cloudformation ${CLOUDFORMATION_NAME} doesn't exist. Checking existence of cluster: ${CLUSTER_NAME_EXTENDED}"
-    if [ "$(existCluster "${CLUSTER_NAME}")" = "false"]; then
+    if [ "$(existCluster "${CLUSTER_NAME}")" = "false" ]; then
       # if don't exist cluster CF and don't exist cluster
       echo "Cluster with name ${CLUSTER_NAME} doesn't exist"
       echo "OK: Cloudformation ${CLOUDFORMATION_NAME} will be created in next deploy step."
@@ -48,7 +48,7 @@ if [ "$(existClusterCF "${CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "fals
       # ERROR !!!
     fi
 else
-  if [ "$(existCluster "${CLUSTER_NAME}")" = "true"]; then
+  if [ "$(existCluster "${CLUSTER_NAME}")" = "true" ]; then
     # if exist cluster CF and exist cluster
 
     # configure access to cluster

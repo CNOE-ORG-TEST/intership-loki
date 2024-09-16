@@ -88,11 +88,15 @@ function checkSubnets () {
 # return : string ( "true" if CF exist, "false" otherwise )
 function existClusterCF () {
   set +e
-  local CF="$(aws cloudformation describe-stacks --stack-name "${1}" --region="${2}" 2>&1)"
+  local CF
+  CF="$(aws cloudformation describe-stacks --stack-name "${1}" --region="${2}" 2>&1)"
   local RETURN_CODE=$?
   set -e
   if [ "${RETURN_CODE}" -ne 0 ] && [[ "${CF}" == *"Stack with id ${CLOUDFORMATION_NAME} does not exist"* ]]; then
     echo "false"
+  elif [ "${RETURN_CODE}" -ne 0 ]; then
+    >&2 colorEcho "error" "${CF}"
+    exit 1
   else
     echo "true"
   fi
@@ -104,13 +108,17 @@ function existClusterCF () {
 # return : string ( "true" if cluster exist, "false" otherwise )
 function existCluster () {
   set +e
-  local EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
+  local EKS_DESCRIPTION
+  EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
   local RETURN_CODE=$?
   set -e
-  if [ "${RETURN_CODE}" -eq 0 ]; then
-    echo "true"
-  else
+  if [ "${RETURN_CODE}" -ne 0 ] && [[ "${EKS_DESCRIPTION}" == *"ResourceNotFoundException"* ]]; then
     echo "false"
+  elif [ "${RETURN_CODE}" -ne 0 ]; then
+    >&2 colorEcho "error" "${EKS_DESCRIPTION}"
+    exit 1
+  else
+    echo "true"
   fi
 }
 
