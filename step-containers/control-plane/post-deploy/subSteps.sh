@@ -63,9 +63,8 @@ function checkOIDCProvider() {
   echo "Checking oidc provider arn:aws:iam::${2}:oidc-provider/oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}"
   if [ "$(existOIDCProvider)" "${CLUSTER_ID}" "${2}" "${3}" ]; then
     echo "Oidc provider doesn't exist: oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}\nCreating new one..."
-    # TODO check SRV_CERTIFICATE
-    SRV_CERTIFICATE="9e99a48a9960b14926bb7f3b02e22da2b0ab7280"
-    aws iam create-open-id-connect-provider --url https://oidc.eks."${3}".amazonaws.com/id/"${CLUSTER_ID}" --client-id-list "sts.amazonaws.com" --thumbprint-list "${SRV_CERTIFICATE}" --region "${3}"
+    local SRV_CERTIFICATE="c7ccdfd44b79de55780690a159cce8f67eea33c2"
+    aws iam create-open-id-connect-provider --url https://oidc.eks."${3}".amazonaws.com/id/"${CLUSTER_ID}" --client-id-list "sts.amazonaws.com" --region "${3}"
     log info "Oidc provider created successfully."
   else
     log info "Oidc provider already exists: oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}"
@@ -89,4 +88,82 @@ function checkEndpoint() {
     fi
 }
 
+# create new kubeconfig file for the cluster passed as second parameter in position passed as first parameter
+# $1 : path of the new kubeconfig
+# $2 : cluster name
+# void
+function generateKubeconfig () {
+  # retrieve variables
+  local EKS_DESCRIPTION="$(aws eks describe-cluster --name "${2}" 2>&1)"
+  local CLUSTER_API_ENDPOINT="$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.endpoint')"
+  local CA_DATA_B64="$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.certificateAuthority.data')"
+  local CA_DATA_DECODED="$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.certificateAuthority.data' | base64 -d)"
+  local DOMAIN="externalUser"
+  # create file
+  rm -f ${1}
+  cat <<EOF > ${1}
+apiVersion: v1
+clusters:
+- cluster:
+    server: ${CLUSTER_API_ENDPOINT}
+    certificate-authority-data: ${CA_DATA_B64}
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: aws
+  name: ${DOMAIN}
+current-context: ${DOMAIN}
+kind: Config
+preferences: {}
+users:
+- name: aws
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1alpha1
+      command: aws
+      args:
+        - "eks"
+        - "get-token"
+        - "--cluster-name"
+        - "${2}"
+EOF
+}
+
+# check if exist secret
+# $1 : secret id or name
+# return : string ( "true" if cluster exist, "false" otherwise )
+function existSecret(){
+    set +e
+    local SECRET_DESCRIPTION
+    SECRET_DESCRIPTION="$(aws secretsmanager describe-secret --secret-id "${1}"  2>&1)"
+    local RETURN_CODE=$?
+    set -e
+    if [ "${RETURN_CODE}" -eq 0 ]; then
+      echo "true"
+    elif [[ "${SECRET_DESCRIPTION}" == *"ResourceNotFoundException"* ]]; then
+      echo "false"
+    else
+      >&2 echoColor "error" "exist Secret check error: ${SECRET_DESCRIPTION}"
+      exit 1
+    fi
+
+}
+
+# create aws secret with and save kubeconfing in
+# $1 : cluster name
+# $2 : deploy region
+function createKubeconfigSecret(){
+  echo "Generating Kubeconfig."
+  generateKubeconfig ./kubeconf.yaml ${1}
+  echo "Kubeconfig generated."
+  local SECRET_NAME="cnoe-loki-kubeconfig-${1}"
+  if [ "$(existSecret "${SECRET_NAME}")" = "true" ]; then
+    echo "Secret updating..."
+    aws secretsmanager update-secret --secret-id "${SECRET_NAME}" --secret-string "$(cat ./kubeconf.yaml)" --region "${2}"
+    echo "Secret updated"
+  else
+    echo "Secret creating..."
+    aws secretsmanager create-secret --name ${SECRET_NAME} --description "Contains the kubeconfig file necessary for accessing the ${1} cluster." --secret-string "$(cat ./kubeconf.yaml)" --region "${2}"
+    echo "Secret created"
 }

@@ -26,9 +26,7 @@ cd /
 assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
 
 if [ "$(existClusterCF "${CONTROL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
-      echo "dentrooooo new !!!!!!!!!!!!!!!!!!!!!!!!"
       deployCF "${CONTROL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}"  "${ENVIRONMENT_TAG_PARAMETER}"
 else
-      echo "dentrooooo update !!!!!!!!!!!!!!!!!!!!!!!!"
       updateCF "${CONTROL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}"  "${ENVIRONMENT_TAG_PARAMETER}"
 fi

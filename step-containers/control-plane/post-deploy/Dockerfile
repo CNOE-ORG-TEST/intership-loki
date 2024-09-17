@@ -13,6 +13,6 @@ COPY functions.sh /functions.sh
 COPY update_platform_dynamodb.py /update_platform_dynamodb.py
 COPY script.sh /script.sh
 COPY subSteps.sh /subSteps.sh
-
+COPY empty_kubeconfig.yaml /empty_kubeconfig.yaml
 ENTRYPOINT ["/bin/bash","-ec"]
 CMD ["bash /script.sh"]

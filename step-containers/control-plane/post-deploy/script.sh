@@ -32,7 +32,7 @@ if [ "$(existCluster "${CLUSTER_NAME}")" = "false" ]; then
   >&2 echoColor "error" "Cluster with name ${CLUSTER_NAME} doesn't exist"
   exit 1
 else
-  #TODO add RULE FROM PORT 443 on PRINCIPAL SG
   checkEndpoint "${CLUSTER_NAME}"
   checkOIDCProvider "${CLUSTER_NAME}" "${DEPLOY_AWS_ACCOUNT_ID}" "${DEPLOY_AWS_REGION}"
+  createKubeconfigSecret "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}"
 fi
