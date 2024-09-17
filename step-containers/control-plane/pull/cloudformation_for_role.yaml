@@ -75,7 +75,7 @@ Resources:
                   - "eks:UpdateClusterConfig"
                   - "eks:UpdateClusterVersion"
                 Resource:
-                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/<cluster-name>"
+                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/__CLUSTER_NAME__"
         - PolicyName: "CreateControlPlaneSG"
           PolicyDocument:
             Version: "2012-10-17"

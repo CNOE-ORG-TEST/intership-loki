@@ -11,7 +11,7 @@ function assignRoleToServiceAccount () {
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
 
-# add tag to frontend network
+# add tag to frontend network for load balancer
 # $1 : ids of the frontend network to tag
 # $2 : cluster names
 # void

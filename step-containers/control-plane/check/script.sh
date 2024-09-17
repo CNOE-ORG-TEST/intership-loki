@@ -70,7 +70,7 @@ else
     checkCFMandatoryParameters
   else
     >&2 colorEcho "error" "Cloudformation ${CLOUDFORMATION_NAME} exist but cluster ${CLUSTER_NAME} don't exists"
-    >&2 colorEcho "red" "Please check your params!"
+    >&2 colorEcho "red" "Please check your parameters! if all parameters it's ok delete ${CLOUDFORMATION_NAME} cloudformation end try again "
     exit 1
     # ERROR !!!
   fi

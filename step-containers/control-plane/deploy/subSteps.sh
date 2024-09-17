@@ -70,7 +70,7 @@ function deployCF(){
     cd /shared
     echo "Parameters:"
     cat ./cluster_parameters.json
-    aws cloudformation create-stack --stack-name "${1}" --parameters file:///shared/cluster_parameters.json --template-body "file:///shared/cloudformation_cluster.yaml" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --tags "[{\"Key\":\"Env\",\"Value\":\"${3}\"}]" --region "${2}" #--role-arn "${ROLE_ARN}"
+    aws cloudformation create-stack --stack-name "${1}" --parameters file:///shared/cluster_parameters.json --template-body "file:///shared/cloudformation_cluster.yaml" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --tags "[{\"Key\":\"Env\",\"Value\":\"${3}\"}, {\"Key\":\"Owner\",\"Value\":\"ro.distefano\"}, {\"Key\":\"DateOfDecommission\",\"Value\":\"20/09/2024\"}, {\"Key\":\"Schedule\",\"Value\":\"reply-office-hours\"}]" --region "${2}" #--role-arn "${ROLE_ARN}"
     aws cloudformation wait stack-create-complete --stack-name "${1}" --region "${2}"
     cd /
 }
