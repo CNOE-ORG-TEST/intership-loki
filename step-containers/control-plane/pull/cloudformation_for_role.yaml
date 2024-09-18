@@ -62,6 +62,16 @@ Resources:
                   - "cloudformation:*"
                 Resource:
                   - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__CLOUDFORMATION_NAME__/*"
+        - PolicyName: "CreateSecretKubeconfig"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "secretsmanager:CreateSecret"
+                  - "secretsmanager:UpdateSecret"
+                Resource:
+                  - "arn:aws:secretsmanager:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:secret:cnoe-loki-kubeconfig-__CLUSTER_NAME__"
         - PolicyName: "CreateManagedClusterEKS"
           PolicyDocument:
             Version: "2012-10-17"
@@ -101,7 +111,7 @@ Resources:
                 Action:
                   - "eks:TagResource"
                 Resource:
-                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/<stesso cluster name di sopra>"
+                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/__CLUSTER_NAME__"
         - PolicyName: "DescribeFeBeSubnets"
           PolicyDocument:
             Version: "2012-10-17"

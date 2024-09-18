@@ -5,8 +5,8 @@
 # $2 : region where deploy the cluster
 # void
 function assignRoleToServiceAccount () {
-  echo "Assuming role: ${$1}"
-  aws sts assume-role --role-arn "${$1}" --role-session-name=session-role-controlplane-$$ --region "${$2}" --duration-seconds 3600
+  echo "Assuming role: ${1}"
+  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-controlplane-$$ --region "${2}" --duration-seconds 3600
   local ROLE_ASSUMED="$(aws sts get-caller-identity)"
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
@@ -27,13 +27,17 @@ function addTagToFrontendNetwork () {
 # return : string ( "true" if cluster exist, "false" otherwise )
 function existCluster () {
   set +e
-  local EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
+  local EKS_DESCRIPTION
+  EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
   local RETURN_CODE=$?
   set -e
-  if [ "${RETURN_CODE}" -eq 0 ]; then
-    echo "true"
-  else
+  if [ "${RETURN_CODE}" -ne 0 ] && [[ "${EKS_DESCRIPTION}" == *"ResourceNotFoundException"* ]]; then
     echo "false"
+  elif [ "${RETURN_CODE}" -ne 0 ]; then
+    >&2 colorEcho "error" "${EKS_DESCRIPTION}"
+    exit 1
+  else
+    echo "true"
   fi
 }
 
@@ -44,7 +48,8 @@ function existCluster () {
 # return : string ( "true" if cluster exist, "false" otherwise )
 function existOIDCProvider () {
   set +e
-  aws iam get-open-id-connect-provider --open-id-connect-provider-arn "arn:aws:iam::${2}:oidc-provider/oidc.eks.${3}.amazonaws.com/id/${1}"
+  local OIDC_PROVIDER
+  OIDC_PROVIDER=$(aws iam get-open-id-connect-provider --open-id-connect-provider-arn "arn:aws:iam::${2}:oidc-provider/oidc.eks.${3}.amazonaws.com/id/${1}" 2>&1)
   RETURN_CODE=$?
   set -e
   if [ "${RETURN_CODE}" -eq 0 ]; then
@@ -58,16 +63,18 @@ function existOIDCProvider () {
 # $1 : name of the cluster to check
 # $2 : aws account id
 # $3 : aws region where deploy the cluster
+# void
 function checkOIDCProvider() {
+  local EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
   local CLUSTER_ID="$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.endpoint' | cut -d "/" -f3 | cut -d "." -f1)"
   echo "Checking oidc provider arn:aws:iam::${2}:oidc-provider/oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}"
-  if [ "$(existOIDCProvider)" "${CLUSTER_ID}" "${2}" "${3}" ]; then
+  if [ "$(existOIDCProvider "${CLUSTER_ID}" "${2}" "${3}")" = "false" ]; then
     echo "Oidc provider doesn't exist: oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}\nCreating new one..."
-    local SRV_CERTIFICATE="c7ccdfd44b79de55780690a159cce8f67eea33c2"
-    aws iam create-open-id-connect-provider --url https://oidc.eks."${3}".amazonaws.com/id/"${CLUSTER_ID}" --client-id-list "sts.amazonaws.com" --region "${3}"
-    log info "Oidc provider created successfully."
+    #local SRV_CERTIFICATE="c7ccdfd44b79de55780690a159cce8f67eea33c2"
+    aws iam create-open-id-connect-provider --url "https://oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}" --client-id-list "sts.amazonaws.com" --region "${3}"
+    echo "Oidc provider created successfully."
   else
-    log info "Oidc provider already exists: oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}"
+    echo "Oidc provider already exists: oidc.eks.${3}.amazonaws.com/id/${CLUSTER_ID}"
   fi
 }
 
@@ -78,12 +85,12 @@ function checkEndpoint() {
     echo "Checking if eks cluster is private..."
     local EKS_DESCRIPTION="$(aws eks describe-cluster --name "${1}" 2>&1)"
     if [ "$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.resourcesVpcConfig.endpointPrivateAccess' )" = "true" ] && [ "$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.resourcesVpcConfig.endpointPublicAccess' )" = "false" ] ; then
-      log debug "Cluster with name ${1} is private."
+      echo "Cluster with name ${1} is private."
     elif [ "$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.resourcesVpcConfig.endpointPrivateAccess' )" = "false" ] && [ "$(echo "${EKS_DESCRIPTION}" | jq -r '.cluster.resourcesVpcConfig.endpointPublicAccess' )" = "true" ]; then
       echo "Cluster with name ${1} is public. Passing from public endpoint to private ..."
       aws eks update-cluster-config --name "${1}" --resources-vpc-config endpointPrivateAccess=true,endpointPublicAccess=false && sleep 60 && aws eks wait cluster-active --name "${1}"
     else
-      >&2 echoColor "error" "Cannot retrieve Cluster ${1} information"
+      >&2 colorEcho "error" "Cannot retrieve Cluster ${1} information"
       exit 1
     fi
 }
@@ -144,7 +151,7 @@ function existSecret(){
     elif [[ "${SECRET_DESCRIPTION}" == *"ResourceNotFoundException"* ]]; then
       echo "false"
     else
-      >&2 echoColor "error" "exist Secret check error: ${SECRET_DESCRIPTION}"
+      >&2 colorEcho "error" "exist Secret check error: ${SECRET_DESCRIPTION}"
       exit 1
     fi
 
@@ -166,4 +173,5 @@ function createKubeconfigSecret(){
     echo "Secret creating..."
     aws secretsmanager create-secret --name ${SECRET_NAME} --description "Contains the kubeconfig file necessary for accessing the ${1} cluster." --secret-string "$(cat ./kubeconf.yaml)" --region "${2}"
     echo "Secret created"
+  fi
 }

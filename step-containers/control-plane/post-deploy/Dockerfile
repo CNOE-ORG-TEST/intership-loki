@@ -9,8 +9,8 @@ RUN cp /usr/bin/python3 /usr/bin/python
 
 COPY automation_conf.json /automation_conf.json
 COPY log.sh /log.sh
-COPY functions.sh /functions.sh
-COPY update_platform_dynamodb.py /update_platform_dynamodb.py
+#COPY functions.sh /functions.sh
+#COPY update_platform_dynamodb.py /update_platform_dynamodb.py
 COPY script.sh /script.sh
 COPY subSteps.sh /subSteps.sh
 ENTRYPOINT ["/bin/bash","-ec"]
