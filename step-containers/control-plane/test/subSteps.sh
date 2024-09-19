@@ -1,4 +1,3 @@
-. /log.sh
 . /functions.sh
 
 
@@ -6,7 +5,7 @@
 # $1 : arn of the role to assign
 # $2 : region where deploy the cluster
 # void
-function assignRoleToServiceAccount () {
+function assignRoleToServiceAccount() {
   echo "Assuming role: ${1}"
   aws sts assume-role --role-arn "${1}" --role-session-name=session-role-controlplane-$$ --region "${2}" --duration-seconds 3600
   local ROLE_ASSUMED="$(aws sts get-caller-identity)"

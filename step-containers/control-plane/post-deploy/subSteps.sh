@@ -160,18 +160,19 @@ function existSecret(){
 # create aws secret with and save kubeconfing in
 # $1 : cluster name
 # $2 : deploy region
+# void
 function createKubeconfigSecret(){
   echo "Generating Kubeconfig."
   generateKubeconfig ./kubeconf.yaml ${1}
   echo "Kubeconfig generated."
   local SECRET_NAME="cnoe-loki-kubeconfig-${1}"
   if [ "$(existSecret "${SECRET_NAME}")" = "true" ]; then
-    echo "Secret updating..."
+    echo "Updating ${SECRET_NAME} secret..."
     aws secretsmanager update-secret --secret-id "${SECRET_NAME}" --secret-string "$(cat ./kubeconf.yaml)" --region "${2}"
-    echo "Secret updated"
+    echo "Updated ${SECRET_NAME} secret..."
   else
-    echo "Secret creating..."
+    echo "Creating ${SECRET_NAME} secret..."
     aws secretsmanager create-secret --name ${SECRET_NAME} --description "Contains the kubeconfig file necessary for accessing the ${1} cluster." --secret-string "$(cat ./kubeconf.yaml)" --region "${2}"
-    echo "Secret created"
+    echo "Created ${SECRET_NAME} secret..."
   fi
 }

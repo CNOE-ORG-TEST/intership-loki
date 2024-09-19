@@ -70,6 +70,7 @@ Resources:
                 Action:
                   - "secretsmanager:CreateSecret"
                   - "secretsmanager:UpdateSecret"
+                  - "secretsmanager:DescribeSecret"
                 Resource:
                   - "arn:aws:secretsmanager:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:secret:cnoe-loki-kubeconfig-__CLUSTER_NAME__"
         - PolicyName: "CreateManagedClusterEKS"

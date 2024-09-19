@@ -29,7 +29,7 @@ assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
 addTagToFrontendNetwork "${FE_SUBNET_IDS_PARAMETER}" "${CLUSTER_NAME}"
 
 if [ "$(existCluster "${CLUSTER_NAME}")" = "false" ]; then
-  >&2 echoColor "error" "Cluster with name ${CLUSTER_NAME} doesn't exist"
+  >&2 colorEcho "error" "Cluster with name ${CLUSTER_NAME} doesn't exist"
   exit 1
 else
   checkEndpoint "${CLUSTER_NAME}"
