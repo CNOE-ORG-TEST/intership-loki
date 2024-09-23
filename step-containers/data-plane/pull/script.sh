@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
-. /log.sh
-. /functions.sh
+. /subSteps.sh
 
 set -e
 

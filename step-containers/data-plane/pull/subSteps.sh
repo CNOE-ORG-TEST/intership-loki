@@ -1,3 +1,6 @@
+. /log.sh
+. /functions.sh
+
 # download variables.json and automation_conf.json
 # void
 function downloadVariablesFiles() {
