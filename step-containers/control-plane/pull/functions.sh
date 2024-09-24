@@ -19,3 +19,17 @@ function existRoleCF () {
     echo "true"
   fi
 }
+
+# download variables.json and automation_conf.json
+# void
+function downloadVariablesFiles() {
+  cd /shared
+  curl -H "Authorization: Bearer ${GITHUB_TOKEN}" -L "https://raw.githubusercontent.com/${GITHUB_REPO}/main/automation_conf.json" > /shared/automation_conf.json
+  cp /etc/config/variables.json ./variables.json
+  echo "variables.json parameters:"
+  cat variables.json
+
+  echo "automation_conf.json parameters:"
+  cat automation_conf.json
+  cd /
+}

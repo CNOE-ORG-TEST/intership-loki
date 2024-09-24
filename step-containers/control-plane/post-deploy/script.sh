@@ -18,7 +18,7 @@ DEPLOY_AWS_REGION="$(jq -r '.region' ./variables.json)"
 ENVIRONMENT_TAG_PARAMETER="$(jq -r '.env' ./variables.json)"
 DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' ./variables.json)"
 DEPLOY_AWS_REGION="$(jq -r '.region' ./variables.json)"
-CONTROLPANEL_VERSION="$(jq -r '.eksVersion' ./variables.json)"
+CONTROLPANEL_VERSION="$(jq -r '.controlpanel_version' ./automation_conf.json)"
 # derived parameters
 CLOUDFORMATION_NAME="cnoe-${CLUSTER_NAME}-controlpanel"
 ROLE_NAME="cnoe-role-${CLUSTER_NAME}-cp"

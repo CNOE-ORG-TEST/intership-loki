@@ -8,7 +8,6 @@ RUN wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v1
 
 
 COPY test-connectivity-pod.yaml /test-connectivity-pod.yaml
-COPY automation_conf.json /automation_conf.json
 COPY log.sh /log.sh
 COPY functions.sh /functions.sh
 COPY script.sh /script.sh

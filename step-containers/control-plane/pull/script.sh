@@ -9,8 +9,7 @@ set -e
 
 # clone variables config repo
 cd /shared
-curl -H "Authorization: Bearer ${GITHUB_TOKEN}" -L "https://raw.githubusercontent.com/${GITHUB_REPO}/main/variables.json" > /shared/variables.json
-cat variables.json
+downloadVariablesFiles
 
 # setup deploy_and_release_variables.json
 #TIMESTAMP_BUILD="{\"timestamp_build\": \"$(echo $(date +%Y-%m-%dT%H-%M-%S_%s))\"}"
@@ -23,7 +22,7 @@ DEPLOY_AWS_REGION="$(jq -r '.region' variables.json)"
 ENVIRONMENT_TAG_PARAMETER="$(jq -r '.env' variables.json)"
 BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIds' ./variables.json)"
 VPC_ID_PARAMETER="$(jq -r '.vpcId' ./variables.json)"
-EKS_VERSION="$(jq -r '.eksVersion' variables.json)"
+EKS_VERSION="$(jq -r '.controlpanel_version' automation_conf.json)"
 SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIds' ./variables.json)"
 # derivated or fixed
 VERSION="$(jq -r '.eksVersion' variables.json)"

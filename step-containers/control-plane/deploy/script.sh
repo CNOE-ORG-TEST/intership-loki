@@ -14,8 +14,8 @@ BE_SUBNET_IDS_PARAMETER="$(jq -r '.beSubnetIds' ./variables.json)"
 VPC_ID_PARAMETER="$(jq -r '.vpcId' ./variables.json)"
 DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' ./variables.json)"
 DEPLOY_AWS_REGION="$(jq -r '.region' ./variables.json)"
-# from deploy_and_release_variables.json
-CONTROLPANEL_VERSION="$(jq -r '.eksVersion' ./variables.json)"
+# from automation_conf.json
+CONTROLPANEL_VERSION="$(jq -r '.controlpanel_version' /shared/automation_conf.json)"
 # derived parameters
 ROLE_NAME="cnoe-role-${CLUSTER_NAME}-cp"
 ROLE_ARN="arn:aws:iam::${DEPLOY_AWS_ACCOUNT_ID}:role/${ROLE_NAME}"

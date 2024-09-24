@@ -6,7 +6,6 @@ RUN wget https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -O /tmp/awscli-bundl
 RUN curl -L "https://github.com/mikefarah/yq/releases/download/v4.11.0/yq_linux_amd64" -o /bin/yq && chmod +x /bin/yq
 RUN wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v1.17.17/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/bin/kubectl
 
-COPY automation_conf.json /automation_conf.json
 COPY log.sh /log.sh
 COPY function.sh /function.sh
 COPY subSteps.sh /subSteps.sh
