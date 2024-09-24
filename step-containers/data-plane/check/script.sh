@@ -43,9 +43,7 @@ elif [ "$(existCluster "${CLUSTER_NAME}")" = "false" ]; then
   >&2 colorEcho "red" "Please check your parameters! if all parameters it's ok delete ${CONTROLPANEL_CLOUDFORMATION_NAME} cloudformation end recreate all (in this way you will lose all in the cluster)"
   exit 1
 else
-  #checkNewDatapanelVersion "${CLUSTER_NAME}" "${DATAPANEL_VERSION}" TODO
   checkDatapanelVsControlpanel "${CLUSTER_NAME}" "${DATAPANEL_VERSION}"
   checkDatapanelVsInfrpanel "${CLUSTER_NAME}" "${CONTROLPANEL_VERSION}"
   checkDataPanelCF
-  checkCFMandatoryParameters
 fi
