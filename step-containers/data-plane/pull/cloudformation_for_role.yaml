@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  RoleForEksManagedDataPlane:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "__ROLE_NAME__"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            AWS:
+            - "arn:aws:iam::523753954008:role/cnoe-loki-service-account"
+          Action:
+          - "sts:AssumeRole"
+        - Effect: "Allow"
+          Principal:
+            Service:
+            - "cloudformation.amazonaws.com"
+          Action:
+          - "sts:AssumeRole"
+      MaxSessionDuration: 43200
+      Path: /
+      Policies:
+      - PolicyName: "DenyDeleteAllResources"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Deny"
+            Action: 
+            - "iam:Delete*"
+            - "ec2:Delete*"
+            - "autoscaling:DeleteAutoScalingGroup"
+            - "eks:Delete*"
+            Resource: 
+            - "*"
+      - PolicyName: "AllowDeployCloudformation"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Deny"
+            Action:
+            - "cloudformation:DeleteStack"
+            - "cloudformation:DeleteStackInstances"
+            - "cloudformation:DeleteStackSet"
+            Resource:
+            - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/*"
+          - Effect: "Allow"
+            Action: 
+            - "cloudformation:*"
+            - "cloudformation:DeleteChangeSet"
+            Resource: 
+__ALL_CLOUDFORMATION_NODEGROUPS__
+      - PolicyName: "InstanceProfileDataPanelPolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "iam:GetInstanceProfile"
+            - "iam:CreateInstanceProfile"
+            - "iam:AddRoleToInstanceProfile"
+            Resource: 
+            - "arn:aws:iam::__DEPLOY_AWS_ACCOUNT_ID__:instance-profile/*"
+      - PolicyName: "CreateDataPlaneSG"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ec2:CreateSecurityGroup"
+            - "ec2:DescribeSecurityGroups"
+            Resource: 
+            - "*"
+      - PolicyName: "RulesSGDataPanel"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ec2:AuthorizeSecurityGroupIngress"
+            - "ec2:AuthorizeSecurityGroupEgress"
+            - "ec2:ModifySecurityGroupRules"
+            - "ec2:UpdateSecurityGroupRuleDescriptionsIngress"
+            - "ec2:UpdateSecurityGroupRuleDescriptionsEgress"
+            - "ec2:RevokeSecurityGroupIngress"
+            - "ec2:RevokeSecurityGroupEgress"
+            Resource: 
+            - "arn:aws:ec2:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:security-group/*"
+            - "arn:aws:ec2:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:security-group-rule/*"
+      - PolicyName: "LanchTemplateDataPanel"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ec2:DescribeLaunchTemplateVersions"
+            - "ec2:DescribeLaunchTemplates"
+            - "ec2:GetLaunchTemplateData"
+            - "ec2:CreateLaunchTemplate"
+            - "ec2:CreateLaunchTemplateVersion"
+            - "ec2:ModifyLaunchTemplate"
+            Resource: 
+            - "*"
+      - PolicyName: "AutoscalingGroupDescribeDataPanel"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "autoscaling:Describe*"
+            Resource: 
+            - "*"
+      - PolicyName: "AutoscalingGroupDataPanel"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "autoscaling:CreateAutoScalingGroup"
+            - "autoscaling:UpdateAutoScalingGroup"
+            - "autoscaling:SetDesiredCapacity"
+            - "autoscaling:TerminateInstanceInAutoScalingGroup"
+            - "autoscaling:CreateOrUpdateTags"
+            - "autoscaling:SuspendProcesses"
+            - "autoscaling:ResumeProcesses"
+            Resource: 
+            - "arn:aws:autoscaling:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:autoScalingGroup:*:autoScalingGroupName/*"
+      - PolicyName: "LanchConfigurationCreate"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "autoscaling:CreateLaunchConfiguration"
+            Resource: 
+            - "arn:aws:autoscaling:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:launchConfiguration:*"
+      - PolicyName: "LanchConfigurationDescribe"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "autoscaling:DescribeLaunchConfigurations"
+            Resource: 
+            - "*"
+      - PolicyName: "InstancePolicyDataPanel"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ec2:DescribeInstances"
+            - "ec2:RunInstances"
+            Resource: 
+            - "*"
+      - PolicyName: "DescribeClusterEKS"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "eks:DescribeCluster"
+            Resource: 
+            - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/__CLUSTER_NAME__"
+      - PolicyName: "SSMPolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ssm:GetParameter*"
+            Resource: 
+            - "*"            
+      - PolicyName: "DescribeResourcesDataPanel"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ec2:DescribeVpcs"
+            - "ec2:DescribeImages"
+            - "ec2:DescribeKeyPairs"
+            - "ec2:DescribeSubnets"
+            Resource: 
+            - "*"
+      - PolicyName: "TagDataPlaneRes"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "ec2:CreateTags"
+            Resource: 
+            - "*"
+      - PolicyName: "CreateServiceLinkedRolePolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "iam:CreateServiceLinkedRole"
+            Resource: 
+            - "arn:aws:iam::__DEPLOY_AWS_ACCOUNT_ID__:role/*"
+      - PolicyName: "ManageRolePolicies"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "iam:GetRole"
+            - "iam:GetRolePolicy"
+            - "iam:PassRole"
+            - "iam:AttachRolePolicy"
+            - "iam:PutRolePolicy"
+            Resource: 
+            - "arn:aws:iam::*:role/__ROLE_NAME__*"
+      - PolicyName: "CreateNodeInstanceRole"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action: 
+            - "iam:CreateRole"
+            - "iam:GetRole"
+            - "iam:AttachRolePolicy"
+            - "iam:PutRolePolicy"
+            - "iam:PassRole"
+            Resource: 
+__ALL_CLOUDFORMATION_NODEINSTANCEROLES__
