@@ -12,8 +12,8 @@ function assignRoleToServiceAccount() {
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
 
-# check if exist cluster
-# $1 : name of the cluster to check
+# configure access to cluster
+# $1 : name of the cluster
 # $2 : region where cluster is deployed
 # void
 function configureClusterAccess() {

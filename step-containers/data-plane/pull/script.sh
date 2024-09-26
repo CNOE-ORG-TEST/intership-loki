@@ -17,7 +17,7 @@ EKS_VERSION="$(jq -r '.eksVersion' /shared/variables.json)"
 SECURITY_GROUP_IDS_PARAMETER="$(jq -r '.securityGroupIds' /shared/variables.json)"
 # derivated or fixed
 VERSION="$(jq -r '.eksVersion' /shared/variables.json)"
-ROLE_TAG_PARAMETER="application"
+#ROLE_TAG_PARAMETER="application"
 DATE=$(date +"%d-%m-%Y %H:%M:%S")
 COMMIT="test"
 CLOUD_FORMATION_NAME="cnoe-${CLUSTER_NAME}-nodegroup"
