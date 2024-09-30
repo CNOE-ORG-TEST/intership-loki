@@ -47,6 +47,7 @@ function deployRoleCF(){
 # void
 function downloadCFFiles(){
   aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_nodegroups.yaml /shared/cloudformation_nodegroups.yaml
+  aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_nodegroups.yaml /shared/nodegroups_parameter.json
 }
 
 function showCompiledCFFiles() {
