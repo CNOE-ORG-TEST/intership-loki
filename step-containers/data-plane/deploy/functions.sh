@@ -41,17 +41,17 @@ function setCFNodeImgAndNodeGroupType(){
   if [ "${IS_SPOT}" = "true" ]; then
     echo "The nodegroup is of type spot"
     NODEGROUP_TYPE_PARAMETER="spot"
-    NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DEPLOY_DATAPANEL_VERSION}/amazon-linux-2/recommended/image_id"
+    NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DATAPANEL_VERSION}/amazon-linux-2/recommended/image_id"
   else
     echo "The nodegroup is of type ondemand"
     NODEGROUP_TYPE_PARAMETER="ondemand"
-    NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DEPLOY_DATAPANEL_VERSION}/amazon-linux-2/recommended/image_id"
+    NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DATAPANEL_VERSION}/amazon-linux-2/recommended/image_id"
     if [ "${IS_GRAVITON}" = "true" ]; then
       echo "In particular graviton"
-      NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DEPLOY_DATAPANEL_VERSION}/amazon-linux-2-arm64/recommended/image_id"
+      NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DATAPANEL_VERSION}/amazon-linux-2-arm64/recommended/image_id"
     elif [ "${IS_GPU}" = "true" ]; then
       echo "In particular gpu"
-      NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DEPLOY_DATAPANEL_VERSION}/amazon-linux-2-gpu/recommended/image_id"
+      NODE_IMAGE_IDSSM_PARAM="/aws/service/eks/optimized-ami/${DATAPANEL_VERSION}/amazon-linux-2-gpu/recommended/image_id"
     fi
   fi
 
@@ -63,7 +63,7 @@ function setCFAMI(){
   NODE_IMAGE_IDSSM_PARAM_CHECK="$(echo "${DATAPANEL_CLOUDFORMATION}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="NodeImageIdSSMParam") | .ParameterValue')"
   ACTUAL_EKS_VERSION="$(echo ${NODE_IMAGE_IDSSM_PARAM_CHECK} | cut -d "/" -f 6 | cut -d "." -f2)"
   echo "Actual EKS version: 1.${ACTUAL_EKS_VERSION}"
-  EKS_VERSION="$(echo ${DEPLOY_DATAPANEL_VERSION} | cut -d "." -f 2)"
+  EKS_VERSION="$(echo ${DATAPANEL_VERSION} | cut -d "." -f 2)"
   echo "EKS version to deploy: 1.${EKS_VERSION}"
 
   #OLD AMI

@@ -2,9 +2,12 @@
 
 set -e
 
+. /subSteps.sh
+
 showVariables
 
 cd /shared
+ls -la
 
 # variables.json variables
 CLUSTER_NAME="$(jq -r '.clusterName' ./variables.json)"
@@ -37,11 +40,11 @@ elif [ "$(existCluster "${CLUSTER_NAME}")" = "false" ]; then
   >&2 colorEcho "red" "Please check your parameters! if all parameters it's ok delete ${CONTROLPANEL_CLOUDFORMATION_NAME} cloudformation end recreate all (in this way you will lose all in the cluster)"
   exit 1
 else
-  configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}"
+  configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}" "${DEPLOY_AWS_ACCOUNT_ID}"
   retrieveEksParameters "${CLUSTER_NAME}"
   for i in $(seq 0 $((NODEGROUPS_NUMBER-1)));
   do
-    DATAPANEL_CLOUDFORMATION_NAME="$(jq -r --arg i "${i}" '.nodegroups[$i|tonumber].datapanel_cloudformation_name' ./automation_conf.json)"
+    DATAPANEL_CLOUDFORMATION_NAME="$(jq -r --arg i "${i}" '.nodegroups[$i|tonumber].datapanel_cloudformation_name' /shared/automation_conf.json)"
     if [ "$(needToUpdateGroupNode ${i})" = "true" ]; then
         createOrUpdateGroupNode ${DATAPANEL_CLOUDFORMATION_NAME} ${i}
     else

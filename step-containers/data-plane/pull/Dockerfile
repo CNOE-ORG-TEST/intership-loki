@@ -7,6 +7,7 @@ COPY log.sh /log.sh
 COPY cloudformation_for_role.yaml /cloudformation_for_role.yaml
 COPY functions.sh /functions.sh
 COPY script.sh /script.sh
+COPY subSteps.sh /subSteps.sh
 
 ENTRYPOINT ["/bin/bash","-ec"]
 CMD ["bash /script.sh"]

@@ -9,7 +9,7 @@ function assignRoleToServiceAccount () {
   echo "Assuming role: ${1}"
   local OLD_ROLE="$(aws sts get-caller-identity)"
   echo "Old role: ${OLD_ROLE}"
-  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-controlplane-$$ --region "${2}" --duration-seconds 3600
+  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-dataplane-$$ --region "${2}" --duration-seconds 3600
   local ROLE_ASSUMED="$(aws sts get-caller-identity)"
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
@@ -314,4 +314,5 @@ function checkDataPanelCF(){
       checkCFMandatoryParameters
       checkCFNoMandatoryParameters
     fi
+  done
 }

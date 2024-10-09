@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
-. /log.sh
-. /functions.sh
+. /subSteps.sh
 
 set -e
 
@@ -30,7 +29,7 @@ cd /
 assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
 
 # configure access to cluster
-configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}"
+configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}" "${DEPLOY_AWS_ACCOUNT_ID}"
 
 ReadyNodesTest "${CLUSTER_NAME}"
 

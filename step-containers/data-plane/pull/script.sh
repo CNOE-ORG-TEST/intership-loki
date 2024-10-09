@@ -30,21 +30,23 @@ echo "There are ${NODEGROUPS_NUMBER} of NodeGroups in this datapanel."
 echo "Datapanel version: ${DATAPANEL_VERSION}"
 
 #STARTING UPDATE PLAN
-echo "CONTAINER VERSION: $(cat /shared/automation_conf.json | jq -r '.release_version')"
+#echo "CONTAINER VERSION: $(cat /shared/automation_conf.json | jq -r '.release_version')"
 
 if [ "$(existRoleCF "${STACK_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
   # compute ALL_CLOUDFORMATION_NODEGROUPS and ALL_CLOUDFORMATION_NODEINSTANCEROLES variables
   computeNodesRolesNames
+  echo ${ALL_CLOUDFORMATION_NODEGROUPS}
+  echo "ALL_CLOUDFORMATION_NODEINSTANCEROLES=${ALL_CLOUDFORMATION_NODEINSTANCEROLES}"
 
   echo "sed on cloudformation_for_role.yaml"
 
+  sed -i -e 's|__ALL_CLOUDFORMATION_NODEGROUPS__|'"$ALL_CLOUDFORMATION_NODEGROUPS"'|g' /cloudformation_for_role.yaml
+  sed -i -e 's|__ALL_CLOUDFORMATION_NODEINSTANCEROLES__|'"$ALL_CLOUDFORMATION_NODEINSTANCEROLES"'|g' /cloudformation_for_role.yaml
   sed -i -e 's/__ROLE_NAME__/'"$ROLE_NAME"'/g' /cloudformation_for_role.yaml
   sed -i -e 's/__DEPLOY_AWS_ACCOUNT_ID__/'"$DEPLOY_AWS_ACCOUNT_ID"'/g' /cloudformation_for_role.yaml
   sed -i -e 's/__DEPLOY_AWS_REGION__/'"$DEPLOY_AWS_REGION"'/g' /cloudformation_for_role.yaml
   sed -i -e 's/__ENVIRONMENT_TAG_PARAMETER__/'"$ENVIRONMENT_TAG_PARAMETER"'/g' /cloudformation_for_role.yaml
   sed -i -e 's/__CLUSTER_NAME__/'"$CLUSTER_NAME"'/g' /cloudformation_for_role.yaml
-  sed -i -e 's/__ALL_CLOUDFORMATION_NODEGROUPS__/'"$ALL_CLOUDFORMATION_NODEGROUPS"'/g' /cloudformation_for_role.yaml
-  sed -i -e 's/__ALL_CLOUDFORMATION_NODEINSTANCEROLES__/'"$ALL_CLOUDFORMATION_NODEINSTANCEROLES"'/g' /cloudformation_for_role.yaml
 
   echo "Deploying role cloudformation..."
   deployRoleCF "${STACK_NAME}"

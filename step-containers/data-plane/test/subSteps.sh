@@ -1,3 +1,4 @@
+. /log.sh
 . /functions.sh
 
 
@@ -18,9 +19,20 @@ function assignRoleToServiceAccount () {
 # configure access to cluster
 # $1 : name of the cluster
 # $2 : region where cluster is deployed
+# $3 : AWS account ID
 # void
 function configureClusterAccess() {
+    echo "Configuring access to cluster ${1}..."
     aws eks update-kubeconfig --region "${2}" --name "${1}"
+    echo "Configured access to cluster ${1}"
+    echo "Setting current context to arn:aws:eks:${2}:${3}:cluster/${1}..."
+    kubectl config use-context "arn:aws:eks:${2}:${3}:cluster/${1}"
+    if [ "$(kubectl config current-context)" != "arn:aws:eks:${2}:${3}:cluster/${1}" ]; then
+      >&2 colorEcho "error" "Context not set correctly"
+      exit 1
+    else
+      echo "Context set correctly"
+    fi
 }
 
 
@@ -36,7 +48,7 @@ function getNumberOfReadyNodes(){
 
 # get number of nodes defined in automation_conf.json file
 # string ( number of desired nodes )
-function getNumberOfDesiredNodes(){
+function getDesiredNumberOfNodes(){
   cd /shared
 
   mapfile -t ALL_NODE_DESIDERED < <(jq -r '.nodegroups[].cloudformation_parameters.node_desidered' ./automation_conf.json)
@@ -85,13 +97,13 @@ function connetivityTest(){
   while [ ${RETRIES} -ne 0 ]
   do
       set +e
-      local CODE="$(kubectl -n "test-eks" exec "test-client" -- curl -s "nginx-service-to-test.test-eks" -w "%{http_code}\n" -o /dev/null)"
+      local CODE="$(kubectl -n "test-eks" exec "test-client" -- curl -s "nginx-service-to-test.test-eks" -w "%{http_code}\n" -o /dev/null 2>&1)"
       set -e
-      if [ "${CODE}" -eq 200 ]; then
+      if [[ "${CODE}" =~ ^[0-9]+$ ]] && [ "${CODE}" -eq 200 ]; then
           echo "Test connectivity successfully"
           break
       else
-          echo "Test connectivity failed, let's wait 30 seconds and retry"
+          colorEcho "warning" "Test connectivity failed (for error: ${CODE}), let's wait 30 seconds and retry"
           sleep 30
           ((RETRIES--))
       fi

@@ -5,12 +5,12 @@
 # void
 function downloadVariablesFiles() {
   cd /shared
-  curl -H "Authorization: Bearer ${GITHUB_TOKEN}" -L "https://raw.githubusercontent.com/${GITHUB_REPO}/main/variables.json" > /shared/variables.json
+  cp /etc/config/variables.json /shared/variables.json
   curl -H "Authorization: Bearer ${GITHUB_TOKEN}" -L "https://raw.githubusercontent.com/${GITHUB_REPO}/main/automation_conf.json" > /shared/automation_conf.json
-  echo "variables.json parameters:"
+  echo "\nvariables.json parameters:"
   cat variables.json
 
-  echo "automation_conf.json parameters:"
+  echo "\nautomation_conf.json parameters:"
   cat automation_conf.json
   cd /
 }
@@ -20,7 +20,7 @@ function downloadVariablesFiles() {
 # void
 function computeNodesRolesNames(){
   cd /shared
-  for i in $(seq 0 $((${1}-1)));
+  for i in $(seq 0 $((${1})));
   do
     local DATAPANEL_CLOUDFORMATION_NAME="$(jq -r --arg i "${i}" '.nodegroups[$i|tonumber].datapanel_cloudformation_name' ./automation_conf.json)"
     ALL_CLOUDFORMATION_NODEGROUPS+="            - \"arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/${DATAPANEL_CLOUDFORMATION_NAME}/*\"\n"
@@ -47,7 +47,7 @@ function deployRoleCF(){
 # void
 function downloadCFFiles(){
   aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_nodegroups.yaml /shared/cloudformation_nodegroups.yaml
-  aws s3 cp s3://cnoe-loki-manifest-templates/cloudformation_nodegroups.yaml /shared/nodegroups_parameter.json
+  aws s3 cp s3://cnoe-loki-manifest-templates/nodegroups_parameter.json /shared/nodegroups_parameter.json
 }
 
 function showCompiledCFFiles() {

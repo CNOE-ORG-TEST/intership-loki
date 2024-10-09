@@ -20,7 +20,7 @@ function assignRoleToServiceAccount () {
   echo "Assuming role: ${1}"
   local OLD_ROLE="$(aws sts get-caller-identity)"
   echo "Old role: ${OLD_ROLE}"
-  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-controlplane-$$ --region "${2}" --duration-seconds 3600
+  aws sts assume-role --role-arn "${1}" --role-session-name=session-role-dataplane-$$ --region "${2}" --duration-seconds 3600
   local ROLE_ASSUMED="$(aws sts get-caller-identity)"
   echo "Role assumed: ${ROLE_ASSUMED}"
 }
@@ -82,21 +82,35 @@ function retrieveEksParameters(){
 # configure access to cluster
 # $1 : name of the cluster
 # $2 : region where cluster is deployed
+# $3 : AWS account ID
 # void
 function configureClusterAccess() {
+    echo "Configuring access to cluster ${1}..."
     aws eks update-kubeconfig --region "${2}" --name "${1}"
+    echo "Configured access to cluster ${1}"
+    echo "Setting current context to arn:aws:eks:${2}:${3}:cluster/${1}..."
+    kubectl config use-context "arn:aws:eks:${2}:${3}:cluster/${1}"
+    if [ "$(kubectl config current-context)" != "arn:aws:eks:${2}:${3}:cluster/${1}" ]; then
+      >&2 colorEcho "error" "Context not set correctly"
+      exit 1
+    else
+      echo "Context set correctly"
+    fi
 }
 
 # check if group node need to be updated
 # groupNode id
 # return : string ( "true" if group node need to be updated, "false" otherwise )
 function needToUpdateGroupNode(){
+  cd /shared
   echo "$(jq -r --arg i "${1}" '.nodegroups[$i|tonumber].update' ./automation_conf.json)"
+  cd /
 }
 
 function createNodeGroup(){
   echo "Deploying cloudformation ${DATAPANEL_CLOUDFORMATION_NAME}"
-  aws cloudformation create-stack --stack-name "${DATAPANEL_CLOUDFORMATION_NAME}" --parameters file://cloudformation_parameters.json --template-body "${TEMPLATE_BODY}" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --region "${DEPLOY_AWS_REGION}"
+  cat ./cloudformation_parameters.json
+  aws cloudformation create-stack --stack-name "${DATAPANEL_CLOUDFORMATION_NAME}" --parameters file://cloudformation_parameters.json --template-body "${TEMPLATE_BODY}" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" --region "${DEPLOY_AWS_REGION}" --tags "[{\"Key\":\"Env\",\"Value\":\"${ENVIRONMENT_TAG_PARAMETER}\"}, {\"Key\":\"Owner\",\"Value\":\"ro.distefano\"}, {\"Key\":\"DateOfDecommission\",\"Value\":\"20/10/2024\"}, {\"Key\":\"Schedule\",\"Value\":\"reply-office-hours\"}]"
   aws cloudformation wait stack-create-complete --stack-name "${DATAPANEL_CLOUDFORMATION_NAME}" --region "${DEPLOY_AWS_REGION}"
 }
 
@@ -222,6 +236,7 @@ function attachGroupNodeToCluster() {
   if [[ "${AWS_AUTH}" != *"${NODE_INSTANCE_ROLE_ARN}"* ]]; then
     echo "Attaching this nodegroup to cluster ${CLUSTER_NAME}"
     kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapRoles: \|/{print;print \"${ROLE}\";next}1" > /tmp/aws-auth-patch.yml
+    cat /tmp/aws-auth-patch.yml
     kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
     echo "NodeGroup attached..."
   else
@@ -275,8 +290,9 @@ function createOrUpdateGroupNode() {
   BOOTSTRAP_ARGUMENTS="--use-max-pods false --kubelet-extra-args \\\\\"${KUBELET_EXTRA_ARGS}\\\\\" --apiserver-endpoint ${CLUSTER_API_ENDPOINT} --b64-cluster-ca ${CA_DATA_B64}"
   setCFNodeImgAndNodeGroupType
   if [ "$(existCF "${DATAPANEL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
-    echo "Cloudformation ${DATAPANEL_CLOUDFORMATION} doesn't exist.\nWill be created in this step!"
+    echo "Cloudformation ${DATAPANEL_CLOUDFORMATION_NAME} doesn't exist.\nWill be created in this step!"
   else
+    DATAPANEL_CLOUDFORMATION="$(aws cloudformation describe-stacks --stack-name "${DATAPANEL_CLOUDFORMATION_NAME}" --region="${DEPLOY_AWS_REGION}" 2>&1)"
     setCFAMI
   fi
   setCFNodeVolume
@@ -288,7 +304,7 @@ function createOrUpdateGroupNode() {
   sed -i -e "s?__BOOTSTRAP_ARGUMENTS__?${BOOTSTRAP_ARGUMENTS}?g" /cloudformation_parameters.json
   sed -i -e "s?__CLUSTER_API_ENDPOINT__?${CLUSTER_API_ENDPOINT_NOHTTPS}?g" /cloudformation_parameters.json
   sed -i -e "s?__CLUSTER_CONTROLPLANE_SECURITYGROUP__?${CLUSTER_CONTROLPLANE_SECURITYGROUP}?g" /cloudformation_parameters.json
-  sed -i -e "s?__CLUSTER_NAME__?${CLUSTER_NAME_EXTENDED}?g" /cloudformation_parameters.json
+  sed -i -e "s?__CLUSTER_NAME__?${CLUSTER_NAME}?g" /cloudformation_parameters.json
   sed -i -e "s?__ENVIRONMENT_TAG_PARAMETER__?${ENVIRONMENT_TAG_PARAMETER}?g" /cloudformation_parameters.json
   sed -i -e "s?__KEY_NAME__?${KEY_NAME}?g" /cloudformation_parameters.json
   sed -i -e "s?__NODE_ASG_DESIRED_CAPACITY__?${NODE_ASG_DESIRED_CAPACITY}?g" /cloudformation_parameters.json
@@ -331,8 +347,10 @@ function createOrUpdateGroupNode() {
   TEMPLATE_BODY="file://cloudformation_template.yaml"
   export cf_deploy_flag_file=$(mktemp)
   if [ "$(existCF "${DATAPANEL_CLOUDFORMATION_NAME}" "${DEPLOY_AWS_REGION}")" = "false" ]; then
+    echo "CREATING..."
     createNodeGroup
   else
+    echo "UPDATING..."
     updateNodeGroup
   fi
 

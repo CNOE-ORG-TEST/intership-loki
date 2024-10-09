@@ -6,6 +6,7 @@ set -e
 
 cd /shared
 
+cat variables.json
 
 #cf variables
 CLUSTER_NAME="$(jq -r '.clusterName' variables.json)"
