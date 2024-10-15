@@ -11,6 +11,5 @@ COPY script.sh /script.sh
 COPY subSteps.sh /subSteps.sh
 COPY log.sh /log.sh
 
-WORKDIR /data
 ENTRYPOINT ["/bin/bash","-ec"]
 CMD ["bash /script.sh"]
