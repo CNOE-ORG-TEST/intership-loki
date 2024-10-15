@@ -1,5 +1,6 @@
 . /log.sh
 . /functions.sh
+. /checkPlugin.sh
 
 # check if infrplane version is compatible with controlplane version
 # $1 : name of the cluster to check
@@ -29,33 +30,29 @@ function checkInfrpanelVsControlpanel () {
 function checkInfrpanelVsDatapanel () {
     #CHECK CONTROL PANEL VERSION WITH CURRENT DATA PANEL VERSIONS
     echo "Checking infrpanel version accross datapanel versions"
-    if [ "$(repoExist "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}")" = "true" ]; then
-        downloadAutomationConfJson "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}"
-        echo "The datapanel exits, checking the versions"
-        mapfile -t ALL_NODEGROUPS_NAMES_CF< <(jq -r '.nodegroups[].datapanel_cloudformation_name' "automation_conf_dp.json")
-        for NODEGROUP_NAME_CF in "${ALL_NODEGROUPS_NAMES_CF[@]}"; do
-          set +e
-          local INFO_NODEGROUP_NAME_CF="$(aws cloudformation describe-stacks --stack-name "${NODEGROUP_NAME_CF}" --region="${3}" 2>&1)"
-          local RETURN_CODE=$?
-          set -e
+    downloadAutomationConfJson "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}"
+    echo "The datapanel exits, checking the versions"
+    mapfile -t ALL_NODEGROUPS_NAMES_CF< <(jq -r '.nodegroups[].datapanel_cloudformation_name' "automation_conf_dp.json")
+    for NODEGROUP_NAME_CF in "${ALL_NODEGROUPS_NAMES_CF[@]}"; do
+      set +e
+      local INFO_NODEGROUP_NAME_CF="$(aws cloudformation describe-stacks --stack-name "${NODEGROUP_NAME_CF}" --region="${3}" 2>&1)"
+      local RETURN_CODE=$?
+      set -e
 
-          if [ "${RETURN_CODE}" -eq 0 ] && [[ "${INFO_NODEGROUP_NAME_CF}" != *"Stack with id ${INFO_NODEGROUP_NAME_CF} does not exist"* ]]; then
-            local NODEGROUP_VERSION="$(echo "${INFO_NODEGROUP_NAME_CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="NodeImageIdSSMParam") | .ParameterValue' | cut -d "/" -f6 )"
-            echo "Name stack datapanel ${NODEGROUP_NAME_CF} has the version: ${NODEGROUP_VERSION}"
-            local INFRPANEL_NEXT_VERSION=$( (echo "$NODEGROUP_VERSION + 0.01") | bc )
-            local INFRPANEL_PERMITTED_VERSIONS=("${NODEGROUP_VERSION}" "${INFRPANEL_NEXT_VERSION}")
-            if [[ ! " ${INFRPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then
-              >&2 colorEcho "error" "${2} infrpanel version NOT permitted! Please check your datapanel version.\nExiting..."
-              exit 1
-            fi
-          else
-            echo "Stack of datapanel with name ${NODEGROUP_NAME_CF} doesn't exist"
-          fi
-        done
-    else
-      >&2 colorEcho "error" "dataplane repository doesn't exist.\nExiting..."
-      exit 1
-    fi
+      if [ "${RETURN_CODE}" -eq 0 ] && [[ "${INFO_NODEGROUP_NAME_CF}" != *"Stack with id ${INFO_NODEGROUP_NAME_CF} does not exist"* ]]; then
+        local NODEGROUP_VERSION="$(echo "${INFO_NODEGROUP_NAME_CF}" | jq -r '.Stacks[].Parameters[] | select(.ParameterKey=="NodeImageIdSSMParam") | .ParameterValue' | cut -d "/" -f6 )"
+        echo "Name stack datapanel ${NODEGROUP_NAME_CF} has the version: ${NODEGROUP_VERSION}"
+        local INFRPANEL_NEXT_VERSION=$( (echo "$NODEGROUP_VERSION + 0.01") | bc )
+        local INFRPANEL_PERMITTED_VERSIONS=("${NODEGROUP_VERSION}" "${INFRPANEL_NEXT_VERSION}")
+        if [[ ! " ${INFRPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then
+          >&2 colorEcho "error" "${2} infrpanel version NOT permitted! Please check your datapanel version.\nExiting..."
+          exit 1
+        fi
+      else
+        >&2 colorEcho "error" "Stack of datapanel with name ${NODEGROUP_NAME_CF} doesn't exist"
+        exit 1
+      fi
+    done
 }
 
 
@@ -84,7 +81,7 @@ function configureClusterAccess() {
 function checkPlugins () {
   checkCoreDNS "${CLUSTER_NAME}"
   checkAutoscaler "${CLUSTER_NAME}"
-
+  checkMetric "${CLUSTER_NAME}"
 }
 
 # TODO function genereteKubeconfigSA ()

@@ -6,21 +6,6 @@ function downloadAutomationConfJson(){
   curl -H "Authorization: Bearer ${2}" -L "https://raw.githubusercontent.com/${1}/main/automation_conf.json" > automation_conf_dp.json
 }
 
-# check if repo exist
-# $1 : GitHub repository to check
-# $2 : GitHub token
-# return : string ( "true" if cluster exist, "false" otherwise )
-function repoExist () {
-  set +e
-  git ls-remote "https://${1}:x-oauth-basic@${2}" &> /dev/null
-  local RETURN_CODE=$?
-  set -e
-  if [ "${RETURN_CODE}" -eq 0 ]; then
-    echo "true"
-  else
-    echo "false"
-  fi
-}
 
 #parse cpu value to get it's value
 # $1 : CPU value

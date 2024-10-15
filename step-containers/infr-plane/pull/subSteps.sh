@@ -44,20 +44,20 @@ function createServiceAccount() {
 
   echo "apply Service account"
   cat <<EOF | kubectl apply -f -
-  apiVersion: v1
-  kind: ServiceAccount
-  metadata:
-    name: ${1}
-    namespace: kube-system
-  ---
-  apiVersion: v1
-  kind: Secret
-  metadata:
-    name: ${1}-token
-    namespace: kube-system
-    annotations:
-      kubernetes.io/service-account.name: ${1}
-  type: kubernetes.io/service-account-token
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${1}
+  namespace: kube-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${1}-token
+  namespace: kube-system
+  annotations:
+    kubernetes.io/service-account.name: ${1}
+type: kubernetes.io/service-account-token
 EOF
 
   echo "Checking ${1} ServiceAccount for correctness purposes"
@@ -73,7 +73,9 @@ EOF
 # create namespaces for plugins
 # void
 function createNamespaces() {
-    kubectl create namespace metrics
+    cd /
+    aws s3 cp s3://cnoe-loki-manifest-templates/infrplane-manifest/kubernetes/namespaces.yaml /namespaces.yaml
+    kubectl apply -f /namespaces.yaml
 }
 
 # setup role and roleBinfing for each namespace of each plugin

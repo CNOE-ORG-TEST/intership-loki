@@ -26,8 +26,8 @@ echo "Infrpanel version: ${INFRPANEL_VERSION_TAG}"
 
 configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}" "${DEPLOY_AWS_ACCOUNT_ID}"
 
-checkInfrpanelVsControlpanel
-checkInfrpanelVsDatapanel
+checkInfrpanelVsControlpanel "${CLUSTER_NAME}" "${INFRPANEL_VERSION}"
+checkInfrpanelVsDatapanel "${CLUSTER_NAME}" "${INFRPANEL_VERSION}" "${DEPLOY_AWS_REGION}"
 
 checkPlugins "${CLUSTER_NAME}"
 

@@ -5,7 +5,7 @@
 function checkCoreDNS () {
   echo "##### coredns check #####"
 
-  cd shared
+  cd /shared
 
   local COREDNS_ENABLED="$(jq -r '.infr_components.coredns.enabled' ./automation_conf.json)"
 
@@ -104,7 +104,9 @@ function checkAutoscaler() {
       >&2 colorEcho "error" "cluster_autoscaler: request_mem cannot be greater then limit_mem. Please check you resources parameters"
       exit 1
     fi
-    CHECK_AUTOSCALER="$(kubectl get deployment -n kube-system cluster-autoscaler)"
+    set +e
+    CHECK_AUTOSCALER="$(kubectl get deployment -n kube-system cluster-autoscaler 2> /dev/null)"
+    set -e
     if [ "${CHECK_AUTOSCALER}" = "" ] && [ "${AUTOSCALER_ENABLED}" = "true" ]; then
       echo "cluster-autoscaler isn't present on cluster ${1} and will be installed in next step"
 
@@ -198,7 +200,9 @@ function checkMetric () {
       exit 1
     fi
 
-    CHECK_METRIC_SERVER="$(kubectl --kubeconfig="${KUBECONF_SA}" --context="${DOMAIN}" get deployment -n kube-system metrics-server)"
+    set +e
+    CHECK_METRIC_SERVER="$(kubectl --kubeconfig="${KUBECONF_SA}" --context="${DOMAIN}" get deployment -n kube-system metrics-server 2> /dev/null)"
+    set -e
     if [ "${CHECK_METRIC_SERVER}" = "" ] && [ "${METRIC_SERVER_ENABLED}" = "true" ]; then
       echo "metric-server isn't present on cluster ${1} and will be installed in next step"
     elif [ "${CHECK_METRIC_SERVER}" = "" ] && [ "${METRIC_SERVER_ENABLED}" = "false" ]; then

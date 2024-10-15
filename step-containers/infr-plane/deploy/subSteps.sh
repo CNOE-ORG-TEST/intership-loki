@@ -1,5 +1,6 @@
 . /log.sh
 . /functions.sh
+. /setHelmVariables.sh
 
 # configure access to cluster
 # $1 : name of the cluster
@@ -35,7 +36,7 @@ function downloadHelmFiles() {
 # $4 : DEPLOY_AWS_REGION
 # void
 function setHelmVariables() {
-  setAwsCniVariables
+  setAwsCniVariables # TODO error to resolve
   setAutoscalerVariables "${1}" "/helm/templates/eks-cluster-autoscaler.yaml"
   setCoreDNS
   setMetricServer

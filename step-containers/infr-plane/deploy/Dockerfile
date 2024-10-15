@@ -1,12 +1,12 @@
-FROM public.ecr.aws/docker/library/golang:1-alpine3.13
+FROM public.ecr.aws/docker/library/python:3.9-alpine
 RUN apk -uv add --no-cache jq openssl bash curl git unzip
 RUN apk add --update make
 RUN apk add bind-tools
 RUN apk add --update coreutils
 RUN apk add --update python3
-RUN apk add --no-cache python3 py3-pip 
-RUN pip3 install requests argparse pytz
-RUN cp /usr/bin/python3 /usr/bin/python
+#RUN apk add --no-cache python3 py3-pip
+#RUN pip3 install requests argparse pytz
+#RUN cp /usr/bin/python3 /usr/bin/python
 RUN apk --no-cache add binutils wget unzip && wget https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -O /tmp/awscli-bundle.zip && unzip /tmp/awscli-bundle.zip -d /tmp && /tmp/awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws && rm -rf /tmp/awscli-bundle.zip /tmp/awscli-bundle
 
 RUN curl -L "https://github.com/mikefarah/yq/releases/download/v4.11.0/yq_linux_amd64" -o /bin/yq && chmod +x /bin/yq
