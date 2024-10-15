@@ -1,0 +1,855 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    k8s-app: metrics-server
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  name: system:aggregated-metrics-reader
+rules:
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: __SA_NAME__-clusterrole
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  verbs:
+  - bind
+  - get
+  - list
+  - watch
+  - patch
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  - podsecuritypolicies
+  verbs:
+  - use
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - pods
+  - replicationcontrollers
+  - persistentvolumes
+  - services
+  - nodes
+  - nodes/stats
+  - deployments
+  verbs:
+  - get
+  - watch
+  - list
+  - update
+  - create
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apiextensions.k8s.io
+  - adapters.config.istio.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - apiregistration.k8s.io
+  resources:
+  - apiservices
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - crd.k8s.amazonaws.com
+  resources:
+  - eniconfigs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - extensions
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+  #Manteniance permission
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - componentstatuses
+  - configmaps
+  - cronjobs
+  - daemonsets
+  - endpoints
+  - events
+  - horizontalpodautoscalers
+  - ingress
+  - jobs
+  - limitranges
+  - replicasets
+  - resourcequotas
+  - serviceaccounts
+  - statefulsets
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  #Manteniance permission
+  - update
+  - patch
+- apiGroups:
+  - "apps"
+  - "autoscaling"
+  - "batch"
+  - "extensions"
+  - "policy"
+  - "rbac.authorization.k8s.io"
+  resources:
+  - componentstatuses
+  - configmaps
+  - cronjobs
+  - daemonsets
+  - deployments
+  - endpoints
+  - events
+  - horizontalpodautoscalers
+  - ingress
+  - jobs
+  - limitranges
+  - namespaces
+  - nodes
+  - persistentvolumeclaims
+  - persistentvolumes
+  - pods
+  - replicasets
+  - replicationcontrollers
+  - resourcequotas
+  - serviceaccounts
+  - services
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  #Manteniance permission
+  - update
+  - patch  
+- apiGroups:
+  - "autoscaling"
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete  
+- apiGroups:
+  - "coordination.k8s.io"
+  resources:
+  - "leases"
+  verbs:
+  - get
+  - update
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - "pods/eviction"
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - "pods/status"
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - "endpoints"
+  - "events"
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - "persistentvolumes"
+  verbs:
+  - delete
+  - patch
+- apiGroups:
+  - "storage.k8s.io"
+  resources:
+  - "csinodes"
+  verbs:
+  - watch
+  - list
+  - get
+- apiGroups:
+  - "extensions"
+  resources:
+  - "podsecuritypolicies"
+  verbs:
+  - use
+- apiGroups:
+  - "batch"
+  resources:
+  - "cronjobs"
+  verbs:
+  - delete
+- nonResourceURLs: 
+  - "*"
+  verbs: 
+  - list
+  - watch
+  - get
+- apiGroups:
+  - authentication.istio.io
+  resources:
+  - "*"
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - config.istio.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac.istio.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch  
+- apiGroups:
+  - security.istio.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch    
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  - certificatesigningrequests/approval
+  - certificatesigningrequests/status
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch     
+  - delete
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - workloadentries
+  - workloadentries/status
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch     
+  - delete 
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingressclasses
+  - ingresses
+  - ingresses/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.x-k8s.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac.istio.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - ingresses
+  - nodes/metrics
+  - nodes/proxy
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  - ingresses/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - signers
+  resourceNames:
+  - kubernetes.io/legacy-unknown
+  verbs:
+  - approve
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - workloadentries
+  - workloadentries/status
+  verbs:
+  - create  
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - "*" 
+- apiGroups:
+  - multicluster.x-k8s.io
+  resources:
+  - serviceexports
+  verbs:
+  - get 
+  - watch
+  - list
+  - create
+  - delete
+- apiGroups:
+  - networking.x-k8s.io
+  resources:
+  - "*"
+  verbs:
+  - update
+- apiGroups:
+  - telemetry.istio.io
+  resources:
+  - "*"
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - zalando.org
+  resources:
+  - stacks
+  verbs:
+  - get
+  - watch
+  - list
+  - update
+  - patch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+  - patch  
+- apiGroups:
+  - poc.autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+  - patch  
+- apiGroups:
+  - autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalercheckpoints
+  verbs:
+  - get 
+  - list 
+  - watch 
+  - create 
+  - patch 
+  - delete
+- apiGroups:
+  - poc.autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalercheckpoints
+  verbs:
+  - get 
+  - list 
+  - watch 
+  - create 
+  - patch 
+  - delete
+- apiGroups:
+  - "*"
+  resources: 
+   - "*/scale"
+  verbs:
+  - get 
+  - watch
+  - create
+  - update
+- apiGroups:
+  - autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - get 
+  - list 
+  - watch 
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - list 
+  - watch 
+- apiGroups:
+  - poc.autoscaling.k8s.io
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - get 
+  - list 
+  - watch 
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - list 
+  - watch
+- nonResourceURLs: ["/metrics", "/version", "/readyz", "/healthz"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["dynatrace-dynakube-config"]
+  verbs: ["delete"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["clusterversions", "deploymentconfigs", "pods/proxy", "nodes", "pods", "namespaces", "replicationcontrollers", "events", "resourcequotas", "nodes/proxy", "services"]
+  verbs: ["list", "watch", "get"]
+- apiGroups: ["apps"]
+  resources: ["clusterversions", "deploymentconfigs", "nodes/proxy", "pods/proxy", "deployments", "replicasets", "statefulsets", "daemonsets"]
+  verbs: ["list", "watch", "get"]  
+- apiGroups: ["apps.openshift.io"]
+  resources: ["clusterversions", "cronjobs", "daemonsets", "deploymentconfigs", "deployments", "events", "jobs", "namespaces", "nodes", "nodes/proxy", "pods", "pods/proxy", "replicasets", "replicationcontrollers", "resourcequotas", "services", "replicationcontrollers", "resourcequotas", "services", "statefulsets"]
+  verbs: ["list", "watch", "get"]  
+- apiGroups: ["batch"]
+  resources: ["clusterversions", "deploymentconfigs", "nodes/proxy", "pods/proxy", "jobs", "cronjobs"]
+  verbs: ["list", "watch", "get"]  
+- apiGroups: ["config.openshift.io"]
+  resources: ["clusterversions", "cronjobs", "daemonsets", "deploymentconfigs", "deployments", "events", "jobs", "namespaces", "nodes", "nodes/proxy", "pods", "pods/proxy", "replicasets", "replicationcontrollers", "resourcequotas", "services", "statefulsets"]
+  verbs: ["list", "watch", "get"]  
+- apiGroups: ["apps"]
+  resources: ["deployments/finalizers"]
+  verbs: ["update"]  
+- apiGroups: ["dynatrace.com"]
+  resources: ["dynakubes"]
+  verbs: ["list", "watch", "get", "update", "create", "patch"]  
+- apiGroups: ["dynatrace.com"]
+  resources: ["dynakubes/finalizers", "dynakubes/status"]
+  verbs: ["update"]  
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
+  verbs: ["get", "create"]  
+- apiGroups: ["config.openshift.io"]
+  resources: ["clusterversions"]
+  verbs: ["list", "watch", "get"]  
+- apiGroups: ["multicluster.x-k8s.io"]
+  resources: ["serviceimports"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions.istio.io"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources: ["*"]
+  verbs: ["get", "watch", "list", "update", "patch"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["create", "delete"]
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources: ["*"]
+  verbs: ["get", "watch", "list", "update"]  
+- apiGroups: ["multicluster.x-k8s.io"]
+  resources: ["*"]
+  verbs: ["get", "watch", "list", "update"]  
+- apiGroups: ["networking.x-k8s.io"]
+  resources: ["*"]
+  verbs: ["patch"] 
+- apiGroups: ["scheduling.k8s.io"]
+  resources: ["priorityclasses"]
+  verbs: ["get", "watch", "list", "update", "patch", "create"] 
+- apiGroups: ["storage.k8s.io"]
+  resources: ["csidrivers"]
+  verbs: ["get", "list", "watch", "patch", "create", "delete"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["delete"]
+- apiGroups: ["secrets-store.csi.x-k8s.io"]
+  resources: ["secretproviderclasses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["secrets-store.csi.x-k8s.io"]
+  resources: ["secretproviderclasspodstatuses"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["secrets-store.csi.x-k8s.io"]
+  resources: ["secretproviderclasspodstatuses/status"]
+  verbs: ["get", "patch", "update", "delete", "list"]
+- apiGroups: [""]
+  resources: ["serviceaccounts/token"]
+  verbs: ["get", "patch", "update", "delete", "create"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["delete", "patch", "logs"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["get", "list", "delete", "patch", "create", "logs"]  
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list", "delete", "patch", "create", "logs"]  
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["logs"]  
+- apiGroups: ["apps"]
+  resources: ["deployments/scale"]
+  verbs: ["list", "delete", "patch", "create", "logs"]    
+- apiGroups: ["extensions"]
+  resources: ["deployments"]
+  verbs: ["delete", "create", "logs"]    
+- apiGroups: ["extensions"]
+  resources: ["deployments/scale"]
+  verbs: ["delete", "create", "logs"]       
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["list"]   
+- apiGroups: ["csi.storage.k8s.io"]
+  resources: ["csinodeinfos"]
+  verbs: ["get", "list", "watch"]   
+- apiGroups: ["storage.k8s.io"]
+  resources: ["volumeattachments"]
+  verbs: ["get", "list", "watch", "update", "patch"]  
+- apiGroups: ["storage.k8s.io"]
+  resources: ["volumeattachments/status"]
+  verbs: ["patch"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["delete"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshotcontents", "volumesnapshots"]
+  verbs: ["get", "list"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["volumeattachments"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims/status"]
+  verbs: ["update", "patch"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshotclasses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshotcontents"]
+  verbs: ["create", "get", "list", "watch", "update", "delete", "patch"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshotcontents/status"]
+  verbs: ["update"]
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources: ["gatewayclasses"]
+  verbs: ["create", "delete"]
+- apiGroups: ["keda.sh"]
+  resources: ["scaledobjects"]
+  verbs: ["get", "watch", "list", "update", "patch"]
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["delete"]
+- apiGroups: ["config.gatekeeper.sh"]
+  resources: ["configs"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["config.gatekeeper.sh"]
+  resources: ["configs/status"]
+  verbs: ["get", "patch", "update"]
+- apiGroups: ["constraints.gatekeeper.sh"]
+  resources: ["*"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["expansion.gatekeeper.sh"]
+  resources: ["*"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["externaldata.gatekeeper.sh"]
+  resources: ["providers"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["mutations.gatekeeper.sh"]
+  resources: ["*"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["status.gatekeeper.sh"]
+  resources: ["*"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["templates.gatekeeper.sh"]
+  resources: ["constrainttemplates"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["templates.gatekeeper.sh"]
+  resources: ["constrainttemplates/finalizers"]
+  verbs: ["delete", "get", "patch", "update"]
+- apiGroups: ["templates.gatekeeper.sh"]
+  resources: ["constrainttemplates/status"]
+  verbs: ["get", "patch", "update"]
+- apiGroups: ["karpenter.k8s.aws"]
+  resources: ["awsnodetemplates", "ec2nodeclasses"]
+  verbs: ["create", "delete", "patch", "update"]
+- apiGroups: ["karpenter.sh"]
+  resources: ["machines", "machines/status", "provisioners", "provisioners/status", "nodeclaims", "nodeclaims/status", "nodepools", "nodepools/status"]
+  verbs: ["create", "delete", "patch", "update"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["patch", "delete"]
+- apiGroups: ["karpenter.k8s.aws"]
+  resources: ["awsnodetemplates", "awsnodetemplates/status", "ec2nodeclasses/status"]
+  verbs: ["patch", "update"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  resourceNames: ["karpenter-leader-election"]
+  verbs: ["patch"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  resourceNames: ["webhook.configmapwebhook.00-of-01", "webhook.defaultingwebhook.00-of-01", "webhook.validationwebhook.00-of-01", "webhook.webhookcertificates.00-of-01"]
+  verbs: ["patch"]
+- apiGroups: [""]
+  resources: ["serviceaccounts"]
+  verbs: ["create", "delete"]
+- apiGroups: ["events.k8s.io"]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["patch"]
+- apiGroups: [""]
+  resources: ["configmaps", "endpoints", "events"]
+  verbs: ["delete"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["patch", "delete"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["update"]
+- apiGroups: [""]
+  resources: ["pods/portforward"]
+  verbs: ["create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["resourcequotas"]
+  verbs: ["create", "delete"]
+- apiGroups: ["apps"]
+  resources: ["replicasets", "statefulsets"]
+  verbs: ["create", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["rolebindings", "roles"]
+  verbs: ["create", "delete", "update", "patch"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["delete"]
+- apiGroups: ["extensions"]
+  resources: ["replicasets"]
+  verbs: ["create", "delete"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods"]
+  verbs: ["create", "delete", "update", "patch"]
+- apiGroups: ["networking.istio.io"]
+  resources: ["*"]
+  verbs: ["create", "delete", "update", "patch"]
+- apiGroups: ["security.istio.io"]
+  resources: ["*"]
+  verbs: ["create", "delete", "update", "patch"]
+- apiGroups: ["weblogic.oracle"]
+  resources: ["*"]
+  verbs: ["create", "delete", "update", "patch"]
+- apiGroups: ["keda.sh"]
+  resources: ["scaledjobs","scaledobjects", "triggerauthentications"]
+  verbs: ["create", "update", "patch", "delete"]
+- apiGroups: ["vpcresources.k8s.aws"]
+  resources: ["cninodes"]
+  verbs: ["patch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings"]
+  resourceNames: [ "weblogic-operator-namespace-weblogic-operator-clusterrole-domain-admin", "weblogic-operator-namespace-weblogic-operator-clusterrole-general", "weblogic-operator-namespace-weblogic-operator-clusterrole-namespace", "weblogic-operator-namespace-weblogic-operator-clusterrole-nonresource", "weblogic-operator-namespace-weblogic-operator-clusterrole-operator-admin", "weblogic-operator-namespace-weblogic-operator-clusterrolebinding-auth-delegator", "weblogic-operator-namespace-weblogic-operator-clusterrolebinding-discovery", "weblogic-operator-namespace-weblogic-operator-clusterrolebinding-general", "weblogic-operator-namespace-weblogic-operator-clusterrolebinding-namespace", "weblogic-operator-namespace-weblogic-operator-clusterrolebinding-nonresource" ]
+  verbs: ["update", "update"]
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["create", "update", "patch", "delete"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: __SA_NAME__-clusterrolebinding
+subjects:
+- kind: ServiceAccount
+  name: __SA_NAME__
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: __SA_NAME__-clusterrole 

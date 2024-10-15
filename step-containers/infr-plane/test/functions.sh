@@ -5,7 +5,7 @@ function checkDeployment () {
   local DEPLOY_NAME="$1"
   local NAMESPACE="$2"
   echo "Checking ${DEPLOY_NAME} deployment..."
-  kubectl -n "${NAMESPACE}" get deploy "${DEPLOY_NAME}"
+  kubectl -n "${NAMESPACE}" get deploy "${DEPLOY_NAME}" 2>/dev/null
   local RETURN_CODE=$?
 
   FLAG=0
@@ -42,7 +42,7 @@ function checkDeployment () {
         echo "The deployment ${DEPLOY_NAME} is healty."
       fi
     else
-      echo "${DEPLOY_NAME} deployment doesn't exist"
+      colorEcho "warning" "${DEPLOY_NAME} deployment doesn't exist"
     fi
 
     return ${FLAG}

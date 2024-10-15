@@ -136,7 +136,7 @@ function checkDatapanelVsInfrpanel () {
   local RETURN_CODE=$?
   set -e
   if [ "${RETURN_CODE}" -eq 0 ]; then
-    echo "Checking controlpanel version accross infrpanel version.\nInfrpanel version ${INFRPANEL_K8S_VERSION}"
+    echo "Checking datapanel version accross infrpanel version.\nInfrpanel version ${INFRPANEL_K8S_VERSION}"
     local DATAPANEL_NEXT_VERSION=$( (echo "$INFRPANEL_K8S_VERSION + 0.01") | bc )
     local CONTROLPANEL_PERMITTED_VERSIONS=( "${INFRPANEL_K8S_VERSION}" "${DATAPANEL_NEXT_VERSION}" )
     if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then

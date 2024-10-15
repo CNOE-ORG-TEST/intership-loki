@@ -179,10 +179,10 @@ function checkControlpanelVsInfrpanel () {
 function checkControlpanelVsDatapanel () {
     #CHECK CONTROL PANEL VERSION WITH CURRENT DATA PANEL VERSIONS
     echo "Checking controlpanel version accross datapanel versions"
-    downloadAutomationConfJson "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}"
     if [ "$(repoExist "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}")" = "true" ]; then
+        downloadAutomationConfJson "${GITHUB_ORG}/${1}Dataplane" "${GITHUB_TOKEN}"
         echo "The datapanel exits, checking the versions"
-        mapfile -t ALL_NODEGROUPS_NAMES_CF< <(jq -r '.nodegroups[].datapanel_cloudformation_name' "automation_conf.json")
+        mapfile -t ALL_NODEGROUPS_NAMES_CF< <(jq -r '.nodegroups[].datapanel_cloudformation_name' "automation_conf_dp.json")
         for NODEGROUP_NAME_CF in "${ALL_NODEGROUPS_NAMES_CF[@]}"; do
           set +e
           local INFO_NODEGROUP_NAME_CF="$(aws cloudformation describe-stacks --stack-name "${NODEGROUP_NAME_CF}" --region="${3}" 2>&1)"
@@ -194,7 +194,7 @@ function checkControlpanelVsDatapanel () {
             echo "Name stack datapanel ${NODEGROUP_NAME_CF} has the version: ${NODEGROUP_VERSION}"
             local CONTROLPANEL_NEXT_VERSION=$( (echo "$NODEGROUP_VERSION + 0.01") | bc )
             local CONTROLPANEL_PERMITTED_VERSIONS=("${NODEGROUP_VERSION}" "${CONTROLPANEL_NEXT_VERSION}")
-            if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${DEPLOY_CONTROLPANEL_VERSION} ]]; then
+            if [[ ! " ${CONTROLPANEL_PERMITTED_VERSIONS[*]} " =~ ${2} ]]; then
               >&2 colorEcho "error" "${2} NOT permitted! Please check your datapanel version.\nExiting..."
               exit 1
             fi
@@ -204,7 +204,8 @@ function checkControlpanelVsDatapanel () {
         done
 
     else
-      echo "The datapanel doesn't exist! No check with version necessary."
+      >&2 colorEcho "error" "dataplane repository doesn't exist.\nExiting..."
+      exit 1
     fi
 }
 

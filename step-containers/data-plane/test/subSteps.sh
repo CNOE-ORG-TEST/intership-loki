@@ -124,20 +124,30 @@ function kubesystemDeploymentsTest(){
   local RESULT_VALUES=()
   set +e
 
-  checkDeployment "cluster-autoscaler" "kube-system"
-  RESULT_VALUES[0]=$?
+
+
   checkDeployment "coredns" "kube-system"
-  RESULT_VALUES[1]=$?
-  checkDeployment "metrics-server" "kube-system"
-  RESULT_VALUES[2]=$?
+  RESULT_VALUES[0]=$?
+  local DEPLOYMENT_TO_CHECK="cluster-autoscaler, coredns, metrics-server"
+  if [ "$(ExistInfrplane)" = "true" ]; then
+    DEPLOYMENT_TO_CHECK="coredns"
+
+    checkDeployment "cluster-autoscaler" "kube-system"
+    RESULT_VALUES[1]=$?
+    checkDeployment "metrics-server" "kube-system"
+    RESULT_VALUES[2]=$?
+  else
+    checkDeployment "cluster-autoscaler" "kube-system"
+    checkDeployment "metrics-server" "kube-system"
+  fi
 
   set -e
 
   if [[ "${RESULT_VALUES[*]}" =~ 1 ]]; then
-      >&2 colorEcho "error" "At least one of these deployments is not healty: cluster-autoscaler, coredns, metrics-server"
+      >&2 colorEcho "error" "At least one of these deployments is not healty: ${DEPLOYMENT_TO_CHECK}"
       exit 1
   fi
-  echo "Deployments check passed: billing, cluster-autoscaler, coredns, metrics-server"
+  echo "Deployments check passed: ${DEPLOYMENT_TO_CHECK}"
 }
 
 # check percentage of pod in ready status
@@ -163,4 +173,37 @@ function podReadyPercentageTest(){
     else
        echo "Check ready pods OK"
     fi
+}
+
+
+# check status of deployments in kube-system namespace
+# void
+function kubesystemDeploymentsTest(){
+  local RESULT_VALUES=()
+  set +e
+
+
+
+  checkDeployment "coredns" "kube-system"
+  RESULT_VALUES[0]=$?
+  local DEPLOYMENT_TO_CHECK="cluster-autoscaler, coredns, metrics-server"
+  if [ "$(ExistInfrplane)" = "true" ]; then
+    DEPLOYMENT_TO_CHECK="coredns"
+
+    checkDeployment "cluster-autoscaler" "kube-system"
+    RESULT_VALUES[1]=$?
+    checkDeployment "metrics-server" "kube-system"
+    RESULT_VALUES[2]=$?
+  else
+    checkDeployment "cluster-autoscaler" "kube-system"
+    checkDeployment "metrics-server" "kube-system"
+  fi
+
+  set -e
+
+  if [[ "${RESULT_VALUES[*]}" =~ 1 ]]; then
+      >&2 colorEcho "error" "At least one of these deployments is not healty: ${DEPLOYMENT_TO_CHECK}"
+      exit 1
+  fi
+  echo "Deployments check passed: ${DEPLOYMENT_TO_CHECK}"
 }

@@ -3,7 +3,7 @@
 # $2 : GitHub token
 # void
 function downloadAutomationConfJson(){
-  curl -H "Authorization: Bearer ${2}" -L "https://raw.githubusercontent.com/${1}/main/automation_conf.json" > automation_conf.json
+  curl -H "Authorization: Bearer ${2}" -L "https://raw.githubusercontent.com/${1}/main/automation_conf.json" > automation_conf_dp.json
 }
 
 # check if repo exist

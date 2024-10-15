@@ -5,10 +5,10 @@ function checkDeployment () {
   local DEPLOY_NAME="$1"
   local NAMESPACE="$2"
   echo "Checking ${DEPLOY_NAME} deployment..."
-  kubectl -n "${NAMESPACE}" get deploy "${DEPLOY_NAME}"
+  kubectl -n "${NAMESPACE}" get deploy "${DEPLOY_NAME}" 2>/dev/null
   local RETURN_CODE=$?
 
-  local FLAG=0
+  FLAG=0
   if [ "${RETURN_CODE}" -eq 0 ]; then
     echo "${DEPLOY_NAME} deployment exits"
     kubectl -n "${NAMESPACE}" get deploy "${DEPLOY_NAME}" -o json > "${DEPLOY_NAME}".json
@@ -42,8 +42,21 @@ function checkDeployment () {
         echo "The deployment ${DEPLOY_NAME} is healty."
       fi
     else
-      echo "${DEPLOY_NAME} deployment doesn't exist"
+      colorEcho "warning" "${DEPLOY_NAME} deployment doesn't exist"
     fi
 
     return ${FLAG}
+}
+
+function ExistInfrplane(){
+  set +e
+  local INFRPANEL_K8S_VERSION="$(kubectl get cm cm-infrplane-data -n kube-system -o "jsonpath={.data.version}" 2>&1)"
+  local RETURN_CODE=$?
+  set -e
+
+  if [ "${RETURN_CODE}" -eq 0 ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
 }
