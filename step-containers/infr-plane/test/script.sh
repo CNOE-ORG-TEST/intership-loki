@@ -5,7 +5,7 @@
 set -e
 
 cd /shared
-
+cat ./automation_conf.json
 # variables.json variables
 CLUSTER_NAME="$(jq -r '.clusterName' ./variables.json)"
 DEPLOY_AWS_ACCOUNT_ID="$(jq -r '.awsAccountId' ./variables.json)"
@@ -17,7 +17,7 @@ VPC_ID_PARAMETER="$(jq -r '.vpcId' ./variables.json)"
 #automation_conf.json
 INFRPANEL_VERSION="$(jq -r '.infrpanel_version' ./automation_conf.json)"
 ENABLE_CLUSTER_AUTOSCALER="$(jq -r '.infr_components.cluster_autoscaler.enabled' ./automation_conf.json)"
-ENABLE_METRIC_SERVER="$(jq -r '.infr_components.metric-server.enabled' ./automation_conf.json)"
+ENABLE_METRIC_SERVER="$(jq -r '.infr_components."metric-server".enabled' ./automation_conf.json)"
 echo "Infrpanel version: ${INFRPANEL_VERSION}"
 
 cd /

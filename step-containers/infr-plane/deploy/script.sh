@@ -26,7 +26,7 @@ INFRPANEL_VERSION="$(jq -r '.infrpanel_version' ./automation_conf.json)"
 echo "Infrpanel version: ${INFRPANEL_VERSION_TAG}"
 
 configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}" "${DEPLOY_AWS_ACCOUNT_ID}"
-downloadHelmFiles
+downloadHelmFiles "${INFRPANEL_VERSION}"
 setHelmVariables "${CLUSTER_NAME}" "${SECURITY_GROUP_IDS_PARAMETER}" "${ENI_SUBNETS}" "${DEPLOY_AWS_REGION}"
 HELM_VALUE_PATH="/helm/values/${ENVIRONMENT}.yaml"
 helmValuesFileValidation ${HELM_VALUE_PATH}

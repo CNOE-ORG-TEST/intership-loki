@@ -22,11 +22,13 @@ function configureClusterAccess() {
 }
 
 # download helm files
+# $1 : infrplane version
 # void
 function downloadHelmFiles() {
   echo "Dowloading templates from s3 bucket"
 
-  aws s3 cp s3://cnoe-loki-manifest-templates/infrplane-manifest/kubernetes/helm/ /helm --recursive
+  aws s3 cp s3://cnoe-loki-manifest-templates/infrplane-manifest/kubernetes/version${1}/helm/ /helm --recursive
+  ls -la /helm/
 }
 
 # set helm variables
@@ -36,7 +38,7 @@ function downloadHelmFiles() {
 # $4 : DEPLOY_AWS_REGION
 # void
 function setHelmVariables() {
-  setAwsCniVariables # TODO error to resolve
+  setAwsCniVariables
   setAutoscalerVariables "${1}" "/helm/templates/eks-cluster-autoscaler.yaml"
   setCoreDNS
   setMetricServer
@@ -99,9 +101,10 @@ function compileHelmValuesFile () {
 function deployHelm () {
   echo "Generating helm template"
   helm template -f ${2} ./helm > tmp_template.yaml
-  echo "Apply generated helm template with prune (${3})"
+  echo "Add label to resources in helm template"
   kubectl label -f tmp_template.yaml --local ${3} -o json --overwrite > template.yaml
-
+  echo "Apply generated helm template with prune (${3})"
+  kubectl get po -A -l "${3}"
   kubectl apply -f template.yaml --prune -l ${3} \
     --prune-whitelist=core/v1/Pod \
     --prune-whitelist=core/v1/Service \

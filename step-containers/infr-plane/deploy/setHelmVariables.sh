@@ -62,7 +62,7 @@ function setAutoscalerVariables () {
   AUTOSCALER_ENABLED="$(jq -r '.infr_components.cluster_autoscaler.enabled' ./automation_conf.json)"
   if [ "${AUTOSCALER_ENABLED,,}" = "false" ] || [ "${AUTOSCALER_ENABLED}" = "" ] || [ "${AUTOSCALER_ENABLED}" = "null" ]; then
     echo "cluster_autoscaler flag is false: will be elimitated from helm/templates directory"
-    rm -f ./helm/templates/eks-cluster-autoscaler.yaml
+    rm -f /helm/templates/eks-cluster-autoscaler.yaml
   fi
 
   AUTOSCALER_LIM_CPU="$(jq -r '.infr_components.cluster_autoscaler.resources.limit_cpu' ./automation_conf.json)"
@@ -241,9 +241,9 @@ function setMetricServer () {
       echo "Setting default METRIC_SERVER_REQ_MEM"
     fi
 
-  elif [ "${METRIC_SERVER_ENABLED}" = "false" ] || [ "${METRIC_SERVER_ENABLED}" = "" ] || [ "${METRIC_SERVER_ENABLED}" = "null" ]; then
+  else
     echo "Metric server flag is false: will be elimitated from helm/templates directory"
-    rm -f ./helm/templates/metric-server.yaml
+    rm -f /helm/templates/metric-server.yaml
   fi
 
   cd /

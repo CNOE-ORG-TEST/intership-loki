@@ -24,5 +24,5 @@ configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}" "${DEPLOY_AWS_AC
 SA_NAME="${CLUSTER_NAME,,}-${ENVIRONMENT,,}-role-mk8s-infrpanel"
 
 createServiceAccount ${SA_NAME}
-createNamespaces
+createNamespaces ${INFRPANEL_VERSION}
 setupRoleBindings ${SA_NAME}

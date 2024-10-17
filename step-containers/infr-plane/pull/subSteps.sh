@@ -71,10 +71,12 @@ EOF
 
 
 # create namespaces for plugins
+# $1 : infrplane version
 # void
 function createNamespaces() {
     cd /
-    aws s3 cp s3://cnoe-loki-manifest-templates/infrplane-manifest/kubernetes/namespaces.yaml /namespaces.yaml
+    aws s3 cp s3://cnoe-loki-manifest-templates/infrplane-manifest/kubernetes/version${1}/namespaces.yaml /namespaces.yaml
+    cat /namespaces.yaml
     kubectl apply -f /namespaces.yaml
 }
 

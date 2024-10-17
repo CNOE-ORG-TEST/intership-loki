@@ -70,26 +70,61 @@ function kubesystemDeploymentsTest(){
   set +e
 
 
-
+  echo "Test coredns..."
   checkDeployment "coredns" "kube-system"
-  RESULT_VALUES[0]=$?
+  NUMBER_CHECKED=0
+  RESULT_VALUES[NUMBER_CHECKED]=$?
+  NUMBER_CHECKED=$((NUMBER_CHECKED + 1))
   local DEPLOYMENT_TO_CHECK="coredns"
   if [ "${1}" = "true" ]; then
+    echo "Test cluster-autoscaler..."
     DEPLOYMENT_TO_CHECK+=", cluster-autoscaler"
     checkDeployment "cluster-autoscaler" "kube-system"
-    RESULT_VALUES[1]=$?
+    RESULT_VALUES[NUMBER_CHECKED]=$?
+    NUMBER_CHECKED=$((NUMBER_CHECKED + 1))
   fi
   if [ "${2}" = "true" ]; then
+    echo "Test metrics-server..."
     DEPLOYMENT_TO_CHECK+=", metrics-server"
     checkDeployment "metrics-server" "kube-system"
-    RESULT_VALUES[2]=$?
+    RESULT_VALUES[NUMBER_CHECKED]=$?
+    NUMBER_CHECKED=$((NUMBER_CHECKED + 1))
   fi
 
   set -e
 
+  echo "${ARRAY[@]}"
   if [[ "${RESULT_VALUES[*]}" =~ 1 ]]; then
       >&2 colorEcho "error" "At least one of these deployments is not healty: ${DEPLOYMENT_TO_CHECK}"
       exit 1
+  else
+      echo "Deployments check passed: ${DEPLOYMENT_TO_CHECK}"
   fi
-  echo "Deployments check passed: ${DEPLOYMENT_TO_CHECK}"
+
+}
+
+
+# check percentage of pod in ready status
+# void
+function podReadyPercentageTest(){
+    local PODS="$(kubectl get pod -A --no-headers)"
+    local TOT_PODS=$(echo "${PODS}" | grep -v "Terminating\|ErrImagePull\|ImagePullBackOff" | wc -l)
+    local RUNNING_PODS=$(echo "${PODS}" | grep "Completed\|Running" | wc -l)
+    echo "Tot pods not Terminating not ErrImagePull not ImagePullBackOff: ${TOT_PODS}"
+    echo "Ready pods: ${RUNNING_PODS}"
+    echo "Percentage of ready pods: $((100*RUNNING_PODS/TOT_PODS))"
+    if [ "${TOT_PODS}" -gt 500 ]; then
+        PERCENTAGE=85
+    elif [ "${TOT_PODS}" -lt 80 ]; then
+        PERCENTAGE=60
+    else
+        PERCENTAGE=80
+    fi
+
+    if [ $((100*RUNNING_PODS/TOT_PODS)) -lt ${PERCENTAGE} ]; then
+        >&2 colorEcho "error" "Too many pods not running. Exiting.. "
+        exit 1
+    else
+       echo "Check ready pods OK"
+    fi
 }
