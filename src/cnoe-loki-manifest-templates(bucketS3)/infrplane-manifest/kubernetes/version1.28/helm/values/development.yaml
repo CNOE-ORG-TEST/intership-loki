@@ -1,0 +1,48 @@
+awsCni:
+  enableNetPol: __ENABLE_NET_POL_CONTROLLER__
+
+cmVersion:
+  version: "__VERSION__"
+  enableCoredns: "__ENABLE_COREDNS__"
+  enableClusterAutoscaler: "__ENABLE_CLUSTERAUTOSCALER__"
+  enableMetric: "__ENABLE_METRIC__"
+
+clusterAutoscaler:
+  expander: __EXPANDER__
+  awsRegion: __AWS_REGION__
+  clusterName: __CLUSTER_NAME__
+  scaleDownTime: __CLUSTER_AUTOSCALER_SCALE_DOWN_TIME__
+  resources:
+    limits:
+      cpu: __CLUSTER_AUTOSCALER_LIMITS_CPU__
+      memory: __CLUSTER_AUTOSCALER_LIMITS_MEM__
+    requests:
+      cpu: __CLUSTER_AUTOSCALER_REQUESTS_CPU__
+      memory: __CLUSTER_AUTOSCALER_REQUESTS_MEM__
+
+eniConfig:
+  awsRegion: __AWS_REGION__
+  securityGroups: 
+__SECURITY_GROUPS__
+  subnets:
+    subnet1a: __SUBNET_1a__
+    subnet1b: __SUBNET_1b__
+    subnet1c: __SUBNET_1c__
+
+coredns:
+  resources:
+    limits:
+      cpu: __COREDNS_LIMITS_CPU__
+      memory: __COREDNS_LIMITS_MEM__
+    requests:
+      cpu: __COREDNS_REQUESTS_CPU__
+      memory: __COREDNS_REQUESTS_MEM__
+
+metricServer:
+  resources:
+    limits:
+      cpu: __METRIC_SERVER_LIMITS_CPU__
+      memory: __METRIC_SERVER_LIMITS_MEM__
+    requests:
+      cpu: __METRIC_SERVER_REQUESTS_CPU__
+      memory: __METRIC_SERVER_REQUESTS_MEM__

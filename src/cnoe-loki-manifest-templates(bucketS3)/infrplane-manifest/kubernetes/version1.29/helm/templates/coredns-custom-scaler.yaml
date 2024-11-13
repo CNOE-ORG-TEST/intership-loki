@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: coredns-hybdrid-scaler
+  namespace: kube-system
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          priorityClassName: "system-node-critical"
+          serviceAccount: coredns-hybrid-scaler
+          containers:
+          - name: coredns-hybrid-scaler
+            image: 523753954008.dkr.ecr.eu-west-1.amazonaws.com/intership-cnoe-loki/coredns-custom:latest
+            env:
+            - name: CORES_PER_REPLICA
+              value: "256"
+            - name: NODES_PER_REPLICA
+              value: "16"
+            resources:
+              limits:
+                cpu: "1"
+                memory: "2Gi"
+              requests:
+                cpu: "500m"
+                memory: "512Mi"
+          restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coredns-hybrid-scaler
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: coredns-hybrid-scaler
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: coredns-hybrid-scaler-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: coredns-hybrid-scaler
+subjects:
+- kind: ServiceAccount
+  name: coredns-hybrid-scaler
+  namespace: kube-system

@@ -1,0 +1,94 @@
+[
+  {
+    "ParameterKey": "ClusterName",
+    "ParameterValue": "__CLUSTER_NAME__"
+  },
+  {
+    "ParameterKey": "BackupParameter",
+    "ParameterValue": "__BACKUP_PARAMETER__"
+  },
+  {
+    "ParameterKey": "BootstrapArguments",
+    "ParameterValue": "__BOOTSTRAP_ARGUMENTS__"
+  },
+  {
+    "ParameterKey": "ClusterControlPlaneSecurityGroup",
+    "ParameterValue": "__CLUSTER_CONTROLPLANE_SECURITYGROUP__"
+  },
+  {
+    "ParameterKey": "EnvironmentTagParameter",
+    "ParameterValue": "__ENVIRONMENT_TAG_PARAMETER__"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "__KEY_NAME__"
+  },
+  {
+    "ParameterKey": "NodeAutoScalingGroupDesiredCapacity",
+    "ParameterValue": "__NODE_ASG_DESIRED_CAPACITY__"
+  },
+  {
+    "ParameterKey": "NodeAutoScalingGroupMaxSize",
+    "ParameterValue": "__NODE_ASG_MAX_SIZE__"
+  },
+  {
+    "ParameterKey": "NodeAutoScalingGroupMinSize",
+    "ParameterValue": "__NODE_ASG_MIN_SIZE__"
+  },
+  {
+    "ParameterKey": "NodeGroupName",
+    "ParameterValue": "__NODEGROUP_NAME__"
+  },
+  {
+    "ParameterKey": "NodeGroupTypeParameter",
+    "ParameterValue": "__NODEGROUP_TYPE_PARAMETER__"
+  },
+  {
+    "ParameterKey": "NodeImageId",
+    "ParameterValue": "__NODE_IMAGE_ID__"
+  },
+  {
+    "ParameterKey": "NodeImageIdSSMParam",
+    "ParameterValue": "__NODE_IMAGE_IDSSM_PARAM__"
+  },
+  {
+    "ParameterKey": "NodeInstanceType",
+    "ParameterValue": "__NODE_INSTANCE_TYPE__"
+  },
+  {
+    "ParameterKey": "NodeVolumeSize",
+    "ParameterValue": "__NODE_VOLUME_SIZE__"
+  },
+  {
+    "ParameterKey": "NodeVolumeType",
+    "ParameterValue": "__NODE_VOLUME_TYPE__"
+  },
+  {
+    "ParameterKey": "NodeVolumeIops",
+    "ParameterValue": "__NODE_VOLUME_IOPS__"
+  },
+  {
+    "ParameterKey": "NodeVolumeThroughput",
+    "ParameterValue": "__NODE_VOLUME_THROUGHPUT__"
+  },
+  {
+    "ParameterKey": "OnDemandBaseCapacity",
+    "ParameterValue": "__ONDEMAND_BASE_CAPACITY__"
+  },
+  {
+    "ParameterKey": "VpcId",
+    "ParameterValue": "__VPC_ID__"
+  },
+  {
+    "ParameterKey": "SecurityGroupIdsParameter",
+    "ParameterValue": "__SECURITY_GROUP_IDS_PARAMETER__"
+  },
+  {
+    "ParameterKey": "ClusterAPIEndpoint",
+    "ParameterValue": "__CLUSTER_API_ENDPOINT__"
+  },
+  {
+    "ParameterKey": "Subnets",
+    "ParameterValue": "__SUBNETS__"
+  }
+]

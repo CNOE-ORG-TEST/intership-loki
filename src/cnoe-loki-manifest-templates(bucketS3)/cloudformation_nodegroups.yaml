@@ -1,0 +1,955 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Enel - Amazon EKS - Node Group - Spot, Ondemand - VERSION:__VERSION__ - COMMIT:__COMMIT__ - DATE:__DATE__'
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: EKS Cluster
+        Parameters:
+          - ClusterName
+          - ClusterControlPlaneSecurityGroup
+      - Label:
+          default: Worker Node Configuration
+        Parameters:
+          - NodeGroupName
+          - NodeAutoScalingGroupMinSize
+          - NodeAutoScalingGroupDesiredCapacity
+          - NodeAutoScalingGroupMaxSize
+          - NodeInstanceType
+          - NodeImageIdSSMParam
+          - NodeImageId
+          - NodeVolumeSize
+          - NodeVolumeType
+          - NodeVolumeIops
+          - KeyName
+          - BootstrapArguments
+      - Label:
+          default: Worker Network Configuration
+        Parameters:
+          - VpcId
+          - Subnets
+
+Parameters:
+
+  BootstrapArguments:
+    Type: String
+    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
+
+  ClusterControlPlaneSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup::Id"
+    Description: The security group of the cluster control plane.
+
+  SecurityGroupIdsParameter:
+    Description: List of SecurityGroupIds
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  ClusterName:
+    Type: String
+    Description: The cluster name provided when the cluster was created. If it is incorrect, nodes will not be able to join the cluster.
+
+  ClusterAPIEndpoint:
+    Description: The cluster Endpoint provided when the cluster was created, without https://
+    Type: String
+
+  KeyName:
+    Type: "AWS::EC2::KeyPair::KeyName"
+    Description: The EC2 Key Pair to allow SSH access to the instances
+
+  NodeAutoScalingGroupDesiredCapacity:
+    Type: Number
+    Default: 3
+    Description: Desired capacity of Node Group ASG.
+
+  NodeAutoScalingGroupMaxSize:
+    Type: Number
+    Default: 4
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredCapacity.
+
+  NodeAutoScalingGroupMinSize:
+    Type: Number
+    Default: 1
+    Description: Minimum size of Node Group ASG.
+
+  NodeGroupName:
+    Type: String
+    Description: Unique identifier for the Node Group.
+
+  NodeImageId:
+    Type: String
+    Default: ""
+    Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
+
+  NodeImageIdSSMParam:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Description: AWS Systems Manager Parameter Store parameter of the AMI ID for the worker node instances.
+
+  NodeInstanceType:
+    Type: String
+    Default: "m6i.2xlarge,m5a.2xlarge,m5.2xlarge,"
+    AllowedValues:
+      - c4.2xlarge,c5.2xlarge,
+      - c5.2xlarge,c4.2xlarge,
+      - r4.2xlarge,r5.2xlarge,
+      - r5.2xlarge,r4.2xlarge,
+      - a1.medium,,
+      - a1.large,,
+      - a1.xlarge,,
+      - a1.2xlarge,,
+      - a1.4xlarge,,
+      - c1.medium,,
+      - c1.xlarge,,
+      - c3.large,,
+      - c3.xlarge,,
+      - c3.2xlarge,,
+      - c3.4xlarge,,
+      - c3.8xlarge,,
+      - c4.large,,
+      - c4.xlarge,,
+      - c4.2xlarge,,
+      - c4.4xlarge,,
+      - c4.8xlarge,,
+      - c5.large,,
+      - c5.xlarge,,
+      - c5.2xlarge,,
+      - c5.4xlarge,,
+      - c5.9xlarge,,
+      - c5.12xlarge,,
+      - c5.18xlarge,,
+      - c5.24xlarge,,
+      - c5.metal,,
+      - c5d.large,,
+      - c5d.xlarge,,
+      - c5d.2xlarge,,
+      - c5d.4xlarge,,
+      - c5d.9xlarge,,
+      - c5d.18xlarge,,
+      - c5n.large,,
+      - c5n.xlarge,,
+      - c5n.2xlarge,,
+      - c5n.4xlarge,,
+      - c5n.9xlarge,,
+      - c5n.18xlarge,,
+      - cc2.8xlarge,,
+      - cr1.8xlarge,,
+      - d2.xlarge,,
+      - d2.2xlarge,,
+      - d2.4xlarge,,
+      - d2.8xlarge,,
+      - f1.2xlarge,,
+      - f1.4xlarge,,
+      - f1.16xlarge,,
+      - g2.2xlarge,,
+      - g2.8xlarge,,
+      - g3s.xlarge,,
+      - g3.4xlarge,,
+      - g3.8xlarge,,
+      - g3.16xlarge,,
+      - g5.xlarge,,
+      - g5.2xlarge,,
+      - g5.12xlarge,,
+      - g5.48xlarge,,
+      - h1.2xlarge,,
+      - h1.4xlarge,,
+      - h1.8xlarge,,
+      - h1.16xlarge,,
+      - hs1.8xlarge,,
+      - i2.xlarge,,
+      - i2.2xlarge,,
+      - i2.4xlarge,,
+      - i2.8xlarge,,
+      - i3.large,,
+      - i3.xlarge,,
+      - i3.2xlarge,,
+      - i3.4xlarge,,
+      - i3.8xlarge,,
+      - i3.16xlarge,,
+      - i3.metal,,
+      - i3en.large,,
+      - i3en.xlarge,,
+      - i3en.2xlarge,,
+      - i3en.3xlarge,,
+      - i3en.6xlarge,,
+      - i3en.12xlarge,,
+      - i3en.24xlarge,,
+      - inf2.xlarge,,
+      - inf2.8xlarge,,
+      - inf2.24xlarge,,
+      - inf1.6xlarge,,
+      - inf1.24xlarge,,
+      - m1.small,,
+      - m1.medium,,
+      - m1.large,,
+      - m1.xlarge,,
+      - m2.xlarge,,
+      - m2.2xlarge,,
+      - m2.4xlarge,,
+      - m3.medium,,
+      - m3.large,,
+      - m3.xlarge,,
+      - m3.2xlarge,,
+      - m5a.large,,
+      - m5a.xlarge,,
+      - m5a.2xlarge,,
+      - m5a.4xlarge,,
+      - m5a.8xlarge,,
+      - m5a.12xlarge,,
+      - m5a.16xlarge,,
+      - m5a.24xlarge,,
+      - m5ad.large,,
+      - m5ad.xlarge,,
+      - m5ad.2xlarge,,
+      - m5ad.4xlarge,,
+      - m5ad.12xlarge,,
+      - m5ad.24xlarge,,
+      - m5d.large,,
+      - m5d.xlarge,,
+      - m5d.2xlarge,,
+      - m5d.4xlarge,,
+      - m5d.8xlarge,,
+      - m5d.12xlarge,,
+      - m5d.16xlarge,,
+      - m5d.24xlarge,,
+      - m5d.metal,,
+      - m6a.large,,
+      - m6a.xlarge,,
+      - m6a.2xlarge,,
+      - m6a.4xlarge,,
+      - m6a.8xlarge,,
+      - m6a.12xlarge,,
+      - m6a.16xlarge,,
+      - m6a.24xlarge,,
+      - m6a.32xlarge,,
+      - m6a.48xlarge,,
+      - m6a.metal,,
+      #- p2.xlarge,,
+      #- p2.8xlarge,,
+      #- p2.16xlarge,,
+      - p3.2xlarge,,
+      - p3.8xlarge,,
+      - p3.16xlarge,,
+      - p3dn.24xlarge,,
+      - g4dn.xlarge,,
+      - g4dn.2xlarge,,
+      - g4dn.4xlarge,,
+      - g4dn.8xlarge,,
+      - g4dn.12xlarge,,
+      - g4dn.16xlarge,,
+      - g4dn.metal,,
+      - r3.large,,
+      - r3.xlarge,,
+      - r3.2xlarge,,
+      - r3.4xlarge,,
+      - r3.8xlarge,,
+      - r4.large,,
+      - r4.xlarge,,
+      - r4.2xlarge,,
+      - r4.4xlarge,,
+      - r4.8xlarge,,
+      - r4.16xlarge,,
+      - r5.large,,
+      - r5.xlarge,,
+      - r5.2xlarge,,
+      - r5.4xlarge,,
+      - r5.8xlarge,,
+      - r5.12xlarge,,
+      - r5.16xlarge,,
+      - r5.24xlarge,,
+      - r5.metal,,
+      - r5a.large,,
+      - r5a.xlarge,,
+      - r5a.2xlarge,,
+      - r5a.4xlarge,,
+      - r5a.8xlarge,,
+      - r5a.12xlarge,,
+      - r5a.16xlarge,,
+      - r5a.24xlarge,,
+      - r5ad.large,,
+      - r5ad.xlarge,,
+      - r5ad.2xlarge,,
+      - r5ad.4xlarge,,
+      - r5ad.12xlarge,,
+      - r5ad.24xlarge,,
+      - r5d.large,,
+      - r5d.xlarge,,
+      - r5d.2xlarge,,
+      - r5d.4xlarge,,
+      - r5d.8xlarge,,
+      - r5d.12xlarge,,
+      - r5d.16xlarge,,
+      - r5d.24xlarge,,
+      - r5d.metal,,
+      - t1.micro,,
+      - t2.nano,,
+      - t2.micro,,
+      - t2.small,,
+      - t2.medium,,
+      - t2.large,,
+      - t2.xlarge,,
+      - t2.2xlarge,,
+      - t3.nano,,
+      - t3.micro,,
+      - t3.small,,
+      - t3.medium,,
+      - t3.large,,
+      - t3.xlarge,,
+      - t3.2xlarge,,
+      - t3a.nano,,
+      - t3a.micro,,
+      - t3a.small,,
+      - t3a.medium,,
+      - t3a.large,,
+      - t3a.xlarge,,
+      - t3a.2xlarge,,
+      - u-6tb1.metal,,
+      - u-9tb1.metal,,
+      - u-12tb1.metal,,
+      - x1.16xlarge,,
+      - x1.32xlarge,,
+      - x1e.xlarge,,
+      - x1e.2xlarge,,
+      - x1e.4xlarge,,
+      - x1e.8xlarge,,
+      - x1e.16xlarge,,
+      - x1e.32xlarge,,
+      - z1d.large,,
+      - z1d.xlarge,,
+      - z1d.2xlarge,,
+      - z1d.3xlarge,,
+      - z1d.6xlarge,,
+      - z1d.12xlarge,,
+      - z1d.metal,,
+      - m6a.12xlarge,,
+      - m6g.2xlarge,,
+      - m6i.large,,
+      - m6i.xlarge,,
+      - m6i.2xlarge,,
+      - m6i.4xlarge,,
+      - m6i.8xlarge,,
+      - m6i.12xlarge,,
+      - m6i.16xlarge,,
+      - m6i.24xlarge,,
+      - m6i.32xlarge,,
+      - m6i.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,
+      - m6i.4xlarge,m4.4xlarge,
+      - m6i.4xlarge,m5.4xlarge,
+      - m6i.2xlarge,m5a.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,m5.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,m5.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,t2.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,t2.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,t3.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,m4.2xlarge,t3.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,m4.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,m4.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,t2.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,t2.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,t3.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,m5.2xlarge,t3.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,m4.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,m4.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,m5.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,m5.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,t3.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,t3.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,t2.2xlarge,t3.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,m4.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,m4.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,m5.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,m5.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,m5.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,t2.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,t2.2xlarge,m4.2xlarge,
+      - m6i.2xlarge,t3.2xlarge,t2.2xlarge,m5.2xlarge,
+
+    ConstraintDescription: Must be a valid EC2 instance type
+    Description: EC2 instance type for the node instances
+
+  NodeVolumeSize:
+    Type: Number
+    Default: 100
+    Description: Node volume size
+
+  NodeVolumeType:
+    Type: String
+    Default: gp3
+    Description: Node volume type
+
+  NodeVolumeIops:
+    Type: Number
+    Default: 3000
+    Description: Node volume iops
+
+  NodeVolumeThroughput:
+    Description: Ebs Throughput
+    Type: Number
+    Default: 125
+    MinValue: 125
+    MaxValue: 1000
+
+  OnDemandBaseCapacity:
+    Type: Number
+    Default: 0
+    Description: OnDemand base capacity
+
+  Subnets:
+    Type: "List<AWS::EC2::Subnet::Id>"
+    Description: The subnets where workers can be created.
+
+  VpcId:
+    Type: "AWS::EC2::VPC::Id"
+    Description: The VPC of the worker instances
+
+  CustomerTagParameter:
+    Default: Enel
+    Description: Customer Name
+    Type: String
+
+  EnvironmentTagParameter:
+    AllowedValues:
+      - development
+      - quality
+      - production
+      - testing
+    Default: development
+    Description: The Enviroment for the selected Project
+    Type: String
+
+  BackupParameter:
+    Default: no_backup
+    Description: Backup needed
+    Type: String
+
+  NodeGroupTypeParameter:
+    AllowedValues:
+      - spot
+      - ondemand
+    Description: type of NodeGroup - Spot - OnDemand
+    Type: String
+  ClusterTypeParameter:
+    Type: String
+    Default: shared
+    Description: Cluster's automation ownership
+
+
+
+Conditions:
+  HasNodeImageId: !Not
+    - "Fn::Equals":
+        - Ref: NodeImageId
+        - ""
+  isSpot: !Equals
+    - !Ref NodeGroupTypeParameter
+    - spot
+  isOnDemand: !Equals
+    - !Ref NodeGroupTypeParameter
+    - ondemand
+  isPlatform: !Equals
+    - !Ref ClusterTypeParameter
+    - platform
+
+  HasNodeInstanceType1: !Not [ !Equals [!Select [0, !Split [",", !Ref NodeInstanceType]], ""] ]
+  HasNodeInstanceType2: !Not [ !Equals [!Select [1, !Split [",", !Ref NodeInstanceType]], ""] ]
+  HasNodeInstanceType3: !Not [ !Equals [!Select [2, !Split [",", !Ref NodeInstanceType]], ""] ]
+
+Resources:
+
+  NodeInstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        - "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+        - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      Path: /
+      Policies:
+        - PolicyName: ClusterAutoscalerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  !If
+                  - isSpot
+                  -
+                    - "autoscaling:Describe*"
+                    - "autoscaling:DescribeAutoScalingInstances"
+                    - "autoscaling:DescribeLaunchConfigurations"
+                    - "ec2:DescribeLaunchTemplateVersions"
+                    - "ec2:DescribeInstanceTypes"
+                    - "autoscaling:DescribeTags"
+                    - "autoscaling:SetDesiredCapacity"
+                    - "autoscaling:TerminateInstanceInAutoScalingGroup"
+                  -
+                    - "autoscaling:DescribeAutoScalingGroups"
+                    - "autoscaling:DescribeAutoScalingInstances"
+                    - "autoscaling:DescribeLaunchConfigurations"
+                    - "ec2:DescribeLaunchTemplateVersions"
+                    - "ec2:DescribeInstanceTypes"
+                    - "autoscaling:DescribeTags"
+                    - "autoscaling:SetDesiredCapacity"
+                    - "autoscaling:TerminateInstanceInAutoScalingGroup"
+                Effect: Allow
+                Resource: "*"
+        - PolicyName: BillingPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - "sts:AssumeRole"
+                Effect: Allow
+                Resource: "arn:aws:iam::004253270836:role/allow-put-to-kubernetes-billing-bucket"
+        - PolicyName: LambdaInVpcPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - "ec2:DescribeAvailabilityZones"
+                  - "ec2:DescribeNetworkInterfaceAttribute"
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:DescribeSubnets"
+                  - "autoscaling:DescribeVpcAttribute"
+                  - "elasticfilesystem:Describe*"
+                  - "kms:ListAliases"
+                Effect: Allow
+                Resource: "*"
+        - PolicyName: CWLogsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - "logs:DescribeLogGroups"
+                  - "logs:DescribeLogStreams"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "logs:PutRetentionPolicy"
+                Effect: Allow
+                Resource: "*"
+        - PolicyName: ECRPullPushPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:GetRepositoryPolicy"
+                  - "ecr:DescribeRepositories"
+                  - "ecr:ListImages"
+                  - "ecr:DescribeImages"
+                  - "ecr:BatchGetImage"
+                  - "ecr:GetAuthorizationToken"
+                Effect: Allow
+                Resource: "*"
+
+  NodeInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: /
+      Roles:
+        - Ref: NodeInstanceRole
+
+  NodeSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: Security group for all nodes in the cluster
+      Tags:
+        - Key: !Sub kubernetes.io/cluster/${ClusterName}
+          Value: owned
+      VpcId: !Ref VpcId
+
+  NodeSecurityGroupIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow node to communicate with each other
+      FromPort: 0
+      GroupId: !Ref NodeSecurityGroup
+      IpProtocol: "-1"
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
+      ToPort: 65535
+
+  ClusterControlPlaneSecurityGroupIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow pods to communicate with the cluster API Server
+      FromPort: 443
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref NodeSecurityGroup
+      ToPort: 443
+
+  ControlPlaneEgressToNodeSecurityGroup:
+    Type: "AWS::EC2::SecurityGroupEgress"
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow the cluster control plane to communicate with worker Kubelet and pods
+      DestinationSecurityGroupId: !Ref NodeSecurityGroup
+      FromPort: 1025
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      ToPort: 65535
+
+  ControlPlaneEgressToNodeSecurityGroupOn443:
+    Type: "AWS::EC2::SecurityGroupEgress"
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow the cluster control plane to communicate with pods running extension API servers on port 443
+      DestinationSecurityGroupId: !Ref NodeSecurityGroup
+      FromPort: 443
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: tcp
+      ToPort: 443
+
+  NodeSecurityGroupFromControlPlaneIngress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow worker Kubelets and pods to receive communication from the cluster control plane
+      FromPort: 1025
+      GroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      ToPort: 65535
+
+  NodeSecurityGroupFromControlPlaneOn443Ingress:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    DependsOn: NodeSecurityGroup
+    Properties:
+      Description: Allow pods running extension API servers on port 443 to receive communication from cluster control plane
+      FromPort: 443
+      GroupId: !Ref NodeSecurityGroup
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      ToPort: 443
+
+  ControlPlaneEgressToNodeSecurityGroupFargate:
+    Type: "AWS::EC2::SecurityGroupEgress"
+    Properties:
+      Description: Allow fargate connections
+      FromPort: 0
+      ToPort: 65535
+      GroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: "-1"
+      CidrIp: 0.0.0.0/0
+
+  ControlPlaneIngressToNodeSecurityGroupFargate:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Condition: isPlatform
+    Properties:
+      Description: Allow fargate connections inbound
+      FromPort: 0
+      ToPort: 65535
+      GroupId: !Ref NodeSecurityGroup
+      SourceSecurityGroupId: !Ref ClusterControlPlaneSecurityGroup
+      IpProtocol: "-1"
+
+  NodeLaunchTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
+    Properties:
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              DeleteOnTermination: true
+              VolumeSize: !Ref NodeVolumeSize
+              VolumeType: !Ref NodeVolumeType
+              Iops: !Ref NodeVolumeIops
+              Throughput: !Ref NodeVolumeThroughput
+        ImageId: !If
+          - HasNodeImageId
+          - Ref: NodeImageId
+          - Ref: NodeImageIdSSMParam
+        IamInstanceProfile:
+          Name: !Ref NodeInstanceProfile
+        InstanceType: !Ref NodeInstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds: !Split
+          - ","
+          - !Join
+            - ","
+            - - !GetAtt NodeSecurityGroup.GroupId
+              - !Join
+                - ","
+                - !Ref "SecurityGroupIdsParameter"
+        UserData:
+          Fn::Base64: !Join
+            - '\n'
+            - - !Sub |
+                #!/usr/bin/env bash
+              - |
+                #Set MAC and VPC
+                MAC=$(curl -s http://169.254.169.254/latest/meta-data/mac/)
+                VPC_CIDR=$(curl -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/vpc-ipv4-cidr-blocks | xargs | tr ' ' ',')
+                
+                #Create the docker systemd directory
+                mkdir -p /etc/systemd/system/docker.service.d
+              - !Sub |
+                set -o xtrace
+                set -a
+                source /etc/environment
+                
+                AWS_AZ=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone)
+                export AWS_AZ=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone)
+                echo export DB_CONNECTION=AWS_AZ=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone) >> /etc/profile
+                echo "Set AWS_AZ env var"
+                echo $AWS_AZ
+                
+                fix_node() {
+                  echo "Fixing node files for the next execution of the bootstrap"
+                  ## curl -o /var/lib/kubelet/kubeconfig https://raw.githubusercontent.com/awslabs/amazon-eks-ami/master/files/kubelet-kubeconfig
+                  cat > /var/lib/kubelet/kubeconfig << EOF
+                  apiVersion: v1
+                  kind: Config
+                  clusters:
+                  - cluster:
+                      certificate-authority: /etc/kubernetes/pki/ca.crt
+                      server: MASTER_ENDPOINT
+                    name: kubernetes
+                  contexts:
+                  - context:
+                      cluster: kubernetes
+                      user: kubelet
+                    name: kubelet
+                  current-context: kubelet
+                  users:
+                  - name: kubelet
+                    user:
+                      exec:
+                        apiVersion: client.authentication.k8s.io/v1beta1
+                        command: /usr/bin/aws-iam-authenticator
+                        args:
+                          - "token"
+                          - "-i"
+                          - "CLUSTER_NAME"
+                          - --region
+                          - "AWS_REGION"
+                EOF
+                ##
+                ##  curl -o /etc/eks/iptables-restore.service https://raw.githubusercontent.com/awslabs/amazon-eks-ami/master/files/iptables-restore.service
+                    cat > /etc/eks/iptables-restore.service << EOF
+                    [Unit]
+                    Description=Restore iptables
+                    # iptables-restore must start after docker because docker will
+                    # reconfigure iptables to drop forwarded packets.
+                    After=docker.service
+                
+                    [Service]
+                    Type=oneshot
+                    ExecStart=/bin/bash -c "/sbin/iptables-restore < /etc/sysconfig/iptables"
+                
+                    [Install]
+                    WantedBy=multi-user.target
+                EOF
+                
+                  echo "Original node files restored"
+                }
+                
+                declare -i i=0
+                declare -i j=10
+                while true
+                do
+                  sh -x /etc/eks/bootstrap.sh ${ClusterName} ${BootstrapArguments}
+                  COMMAND_EXEC=$?
+                  if [ "$COMMAND_EXEC" -eq 0 ]
+                  then
+                    echo "Valid execution, proceeding"
+                    break
+                  elif [ $i -le $j ]
+                  then
+                    echo "Invalid execution: Exit code $COMMAND_EXEC, Iteraction $i"
+                    i+=1
+                    fix_node
+                    sleep 10
+                  else
+                    echo "Breached retry limit."
+                    break
+                  fi
+                done
+                
+                /opt/aws/bin/cfn-signal --exit-code $COMMAND_EXEC \
+                         --stack  ${AWS::StackName} \
+                         --resource NodeGroup  \
+                         --region ${AWS::Region}
+
+              - |
+                #!/usr/bin/env bash
+                sudo hostnamectl set-hostname --static $(echo $(hostname) | cut -d '.' -f 1)
+                echo $(hostname)
+              - !Sub |
+                #!/usr/bin/env bash
+                sudo yum install dnsmasq -y
+                echo "server=/efs.${AWS::Region}.amazonaws.com/169.254.169.253" > /etc/dnsmasq.d/amazonaws.com.conf
+                echo "prepend domain-name-servers 127.0.0.1;" >> /etc/dhcp/dhclient.conf
+                sudo service dnsmasq restart
+                sudo service network restart
+                
+                systemctl stop kubelet
+                systemctl start kubelet
+                sysctl vm.max_map_count=262144
+        TagSpecifications:
+          - ResourceType: volume
+            Tags:
+              - Key: Owner
+                Value: "ro.distefano"
+          - ResourceType: instance
+            Tags:
+              - Key: Owner
+                Value: "ro.distefano"
+
+
+  NodeGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      DesiredCapacity: !Ref NodeAutoScalingGroupDesiredCapacity
+      MaxSize: !Ref NodeAutoScalingGroupMaxSize
+      MinSize: !Ref NodeAutoScalingGroupMinSize
+      MixedInstancesPolicy:
+        !If
+        - isSpot
+        -
+          InstancesDistribution:
+            OnDemandBaseCapacity: !Ref OnDemandBaseCapacity
+            OnDemandPercentageAboveBaseCapacity: 0
+            SpotAllocationStrategy: "capacity-optimized-prioritized"
+          LaunchTemplate:
+            LaunchTemplateSpecification:
+              LaunchTemplateId: !Ref NodeLaunchTemplate
+              Version: !GetAtt NodeLaunchTemplate.LatestVersionNumber
+            Overrides:
+              !If
+              - HasNodeInstanceType1
+              -
+                - InstanceType: !Select [0, !Split [",", !Ref NodeInstanceType]]
+                  WeightedCapacity: "1"
+                - !If
+                  - HasNodeInstanceType2
+                  -
+                    InstanceType: !Select [1, !Split [",", !Ref NodeInstanceType]]
+                    WeightedCapacity: "1"
+                  - !Ref "AWS::NoValue"
+                - !If
+                  - HasNodeInstanceType3
+                  -
+                    InstanceType: !Select [2, !Split [",", !Ref NodeInstanceType]]
+                    WeightedCapacity: "1"
+                  - !Ref "AWS::NoValue"
+              - !Ref "AWS::NoValue"
+        -
+          LaunchTemplate:
+            LaunchTemplateSpecification:
+              LaunchTemplateId: !Ref NodeLaunchTemplate
+              Version: !GetAtt NodeLaunchTemplate.LatestVersionNumber
+            Overrides:
+              - InstanceType: !Select [0, !Split [",", !Ref NodeInstanceType]]
+      Tags:
+        !If
+        - isSpot
+        -
+          - Key: Name
+            PropagateAtLaunch: "true"
+            Value: !Sub ${ClusterName}-${NodeGroupName}-Node
+          - Key: !Sub kubernetes.io/cluster/${ClusterName}
+            PropagateAtLaunch: "true"
+            Value: owned
+          - Key: !Sub k8s.io/cluster-autoscaler/${ClusterName}
+            PropagateAtLaunch: "true"
+            Value: owned
+          - Key: k8s.io/cluster-autoscaler/enabled
+            PropagateAtLaunch: "true"
+            Value: true
+          - Key: Env
+            PropagateAtLaunch: "true"
+            Value: !Ref EnvironmentTagParameter
+          - Key: Backup
+            PropagateAtLaunch: "true"
+            Value: !Ref BackupParameter
+          - Key: !Sub k8s.io/cluster-autoscaler/${ClusterName}/label/lifecycle
+            PropagateAtLaunch: "true"
+            Value: "Ec2Spot"
+          - Key: !Sub k8s.io/cluster-autoscaler/${ClusterName}/label/aws.amazon.com/spot
+            PropagateAtLaunch: "true"
+            Value: "true"
+          - Key: Owner
+            PropagateAtLaunch: "true"
+            Value: "ro.distefano"
+          - Key: Project
+            PropagateAtLaunch: "true"
+            Value: "cnoe-loki"
+          - Key: DateOfDecommission
+            PropagateAtLaunch: "true"
+            Value: "__DATE_OF_DECOMMISSION__"
+          - Key: Schedule
+            PropagateAtLaunch: "true"
+            Value: "reply-office-hours"
+        -
+          - Key: Name
+            PropagateAtLaunch: "true"
+            Value: !Sub ${ClusterName}-${NodeGroupName}-Node
+          - Key: !Sub kubernetes.io/cluster/${ClusterName}
+            PropagateAtLaunch: "true"
+            Value: owned
+          - Key: !Sub k8s.io/cluster-autoscaler/${ClusterName}
+            PropagateAtLaunch: "true"
+            Value: owned
+          - Key: k8s.io/cluster-autoscaler/enabled
+            PropagateAtLaunch: "true"
+            Value: true
+          - Key: Env
+            PropagateAtLaunch: "true"
+            Value: !Ref EnvironmentTagParameter
+          - Key: Backup
+            PropagateAtLaunch: "true"
+            Value: !Ref BackupParameter
+          - Key: Owner
+            PropagateAtLaunch: "true"
+            Value: "ro.distefano"
+          - Key: DateOfDecommission
+            PropagateAtLaunch: "true"
+            Value: "__DATE_OF_DECOMMISSION__"
+          - Key: Schedule
+            PropagateAtLaunch: "true"
+            Value: "reply-office-hours"
+          - Key: Project
+            PropagateAtLaunch: "true"
+            Value: "cnoe-loki"
+      VPCZoneIdentifier: !Ref Subnets
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: "1"
+        MinInstancesInService: !Ref NodeAutoScalingGroupDesiredCapacity
+        PauseTime: PT5M
+
+Outputs:
+  NodeInstanceRole:
+    Description: The node instance role
+    Value: !GetAtt NodeInstanceRole.Arn
+  NodeSecurityGroup:
+    Description: The security group for the node group
+    Value: !Ref NodeSecurityGroup
+    Condition: isOnDemand
+  NodeLaunchTemplate:
+    Description: NodeLaunchTemplate used by nodegroup
+    Value: !Ref NodeLaunchTemplate
+  NodeGroup:
+    Description: Nodegroup used to create kubernetes nodes
+    Value: !Ref NodeGroup

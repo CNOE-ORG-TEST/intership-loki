@@ -1,0 +1,31 @@
+[
+  {
+    "ParameterKey": "ClusterName",
+    "ParameterValue": "__CLUSTERNAME_PARAMETER__"
+  },
+  {
+    "ParameterKey": "ClusterVersion",
+    "ParameterValue": "__CLUSTERVERSION_PARAMETER__"
+  },
+  {
+    "ParameterKey": "EnvironmentTagParameter",
+    "ParameterValue": "__ENVIRONMENT_TAG_PARAMETER__"
+  },
+  {
+    "ParameterKey": "RoleTagParameter",
+    "ParameterValue": "__ROLE_TAG_PARAMETER__"
+  },
+  {
+    "ParameterKey": "SubnetIdsParameter",
+    "ParameterValue": "__SUBNETIDS_PARAMETER__"
+  },
+  {
+    "ParameterKey": "VPCIdParameter",
+    "ParameterValue": "__VPCID_PARAMETER__"
+  },
+  {
+    "ParameterKey": "SecurityGroupIdsParameter",
+    "ParameterValue": "__SECURITYGROUPIDS_PARAMETER__"
+  }
+]
+

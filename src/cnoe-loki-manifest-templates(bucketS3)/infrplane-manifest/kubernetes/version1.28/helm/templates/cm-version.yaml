@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-version
+  namespace: kube-system
+data:
+  version: "{{ .Values.cmVersion.version }}"
+  coredns: "{{ .Values.cmVersion.enableCoredns }}"
+  autoscaler: "{{ .Values.cmVersion.enableClusterAutoscaler }}"
+  metrics: "{{ .Values.cmVersion.enableMetric }}"

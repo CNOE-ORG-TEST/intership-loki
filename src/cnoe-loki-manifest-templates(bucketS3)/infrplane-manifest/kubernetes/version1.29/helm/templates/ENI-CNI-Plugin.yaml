@@ -1,0 +1,32 @@
+apiVersion: crd.k8s.amazonaws.com/v1alpha1
+kind: ENIConfig
+metadata:
+  name: {{ .Values.eniConfig.awsRegion }}a
+spec:
+  securityGroups: 
+  {{- range .Values.eniConfig.securityGroups }}
+    - {{ . }}
+  {{- end }}
+  subnet: {{ .Values.eniConfig.subnets.subnet1a }}
+---
+apiVersion: crd.k8s.amazonaws.com/v1alpha1
+kind: ENIConfig
+metadata:
+  name: {{ .Values.eniConfig.awsRegion }}b
+spec:
+  securityGroups:
+  {{- range .Values.eniConfig.securityGroups }}
+    - {{ . }}
+  {{- end }}
+  subnet: {{ .Values.eniConfig.subnets.subnet1b }}
+---
+apiVersion: crd.k8s.amazonaws.com/v1alpha1
+kind: ENIConfig
+metadata:
+  name: {{ .Values.eniConfig.awsRegion }}c
+spec:
+  securityGroups:
+  {{- range .Values.eniConfig.securityGroups }}
+    - {{ . }}
+  {{- end }}
+  subnet: {{ .Values.eniConfig.subnets.subnet1c }}

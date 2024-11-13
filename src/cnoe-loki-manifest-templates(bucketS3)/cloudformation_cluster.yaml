@@ -1,0 +1,146 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Enel - EKS - Control Plane - VERSION:__VERSION__ - COMMIT:__COMMIT__ - DATE:__DATE__
+
+Parameters:
+
+  EnvironmentTagParameter:
+    AllowedValues:
+      - development
+      - quality
+      - production
+      - testing
+    Default: development
+    Description: The Enviroment for the selected Project
+    Type: String
+
+  RoleTagParameter:
+    Default: application
+    Description: The Role of the project
+    Type: String
+
+  ClusterName:
+    Description: The name of the cluster to create.
+    Type: String
+
+  ClusterVersion:
+    Description: The Kubernetes version of the cluster to create.
+    AllowedValues:
+      - "1.28"
+      - "1.29"
+      - "1.30"
+    Type: String
+
+  SubnetIdsParameter:
+    Description: The array of Subnet IDs for the Subnet group
+    Type: List<AWS::EC2::Subnet::Id>
+
+  VPCIdParameter:
+    Description: The VPC ID
+    Type: AWS::EC2::VPC::Id
+
+  SecurityGroupIdsParameter:
+    Description: List of SecurityGroupIds
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+Resources:
+
+  ControlPlane:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      ResourcesVpcConfig:
+        SecurityGroupIds: !Split
+          - ","
+          - !Join
+            - ","
+            - - !GetAtt ControlPlaneSecurityGroup.GroupId
+              - !Join
+                - ","
+                - !Ref "SecurityGroupIdsParameter"
+        SubnetIds: !Ref SubnetIdsParameter
+      RoleArn: !GetAtt ServiceRole.Arn
+      Version: !Ref ClusterVersion
+
+
+  ControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Join [ '-', [!Ref ClusterName, 'ControlPlane', 'SecurityGroup']]
+      GroupDescription: Communication between the control plane and worker node groups
+      Tags:
+        - Key: Name
+          Value: !Join [ '-', [!Ref ClusterName, 'ControlPlane', 'SecurityGroup']]
+        - Key: Env
+          Value: !Ref EnvironmentTagParameter
+        - Key: Role
+          Value: !Ref RoleTagParameter
+      VpcId: !Ref VPCIdParameter
+      SecurityGroupIngress:
+        !Ref "AWS::NoValue"
+
+  PolicyCloudWatchMetrics:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - cloudwatch:PutMetricData
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: !Join [ '-', [!Ref ClusterName, 'CloudWatchMetrics', 'Policy']]
+      Roles:
+        - !Ref ServiceRole
+
+  PolicyNLB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - elasticloadbalancing:*
+              - ec2:CreateSecurityGroup
+              - ec2:Describe*
+            Effect: Allow
+            Resource: "*"
+        Version: '2012-10-17'
+      PolicyName: !Join [ '-', [!Ref ClusterName, 'NLB', 'Policy']]
+      Roles:
+        - !Ref ServiceRole
+
+  ServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join [ '-', [!Ref ClusterName, 'Cluster', 'Role']]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - eks.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+
+Outputs:
+
+  ClusterName:
+    Description: Cluster Name
+    Value: !Ref ClusterName
+
+  CertificateAuthorityData:
+    Description: Cluster Certification Authority Data
+    Value: !GetAtt ControlPlane.CertificateAuthorityData
+
+  Endpoint:
+    Description: Cluster API Endpoint
+    Value: !GetAtt ControlPlane.Endpoint
+
+  SecurityGroup:
+    Description: Cluster Security Group
+    Value: !Ref ControlPlaneSecurityGroup
