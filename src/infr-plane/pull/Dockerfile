@@ -5,6 +5,7 @@ RUN apk --no-cache add binutils wget unzip && wget https://s3.amazonaws.com/aws-
 RUN wget -O kubectl https://storage.googleapis.com/kubernetes-release/release/v1.17.17/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/bin/kubectl
 
 COPY Roles-RoleBindings.yaml /Roles-RoleBindings.yaml
+COPY cloudformation_for_role.yaml /cloudformation_for_role.yaml
 COPY ClusterRole-ClusterRoleBindings.yaml /ClusterRole-ClusterRoleBindings.yaml
 COPY functions.sh /functions.sh
 COPY script.sh /script.sh

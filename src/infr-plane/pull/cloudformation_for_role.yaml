@@ -1,0 +1,117 @@
+# new version
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  RoleForEksManagedInfrPlane:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "__ROLE_NAME__"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS:
+                - "arn:aws:iam::523753954008:role/cnoe-loki-service-account"
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: "DenyDeleteAllResources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Deny"
+                Action:
+                  - "ec2:Delete*"
+                  - "eks:Delete*"
+                Resource:
+                  - "*"
+        - PolicyName: "AssumeRoleInfrPanelAccounts"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "sts:AssumeRole"
+                  - "iam:CreateRole"
+                  - "iam:GetRole"
+                  - "iam:AttachRolePolicy"
+                  - "iam:PutRolePolicy"
+                  - "iam:PassRole"
+                  - "iam:UpdateAssumeRolePolicy"
+                  - "iam:DeleteRolePolicy"
+                  - "iam:CreatePolicy"
+                  - "iam:DetachRolePolicy"
+                  - "iam:ListPolicyVersions"
+                  - "iam:CreatePolicyVersion"
+                  - "iam:DeletePolicyVersion"
+                  - "iam:TagRole"
+                  - "iam:UntagRole"
+                Resource:
+                  - "*"
+        - PolicyName: "DescribeGlobalInfrPanelResources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:DescribeSubnets"
+                Resource:
+                  - "*"
+        - PolicyName: "ManageClusterEKS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "eks:DescribeCluster"
+                  - "iam:GetOpenIDConnectProvider"
+                Resource:
+                  - "arn:aws:eks:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:cluster/__CLUSTER_NAME__"
+                  - "arn:aws:iam::__DEPLOY_AWS_ACCOUNT_ID__:oidc-provider/oidc.eks.__DEPLOY_AWS_REGION__.amazonaws.com*"
+        - PolicyName: "AllowDeployCloudformation"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "cloudformation:*"
+                Resource:
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__STACK_NAME__/*"
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__STACK_NAME_EBS_CSI_DRIVER__/*"
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__STACK_NAME_KARPENTER__/*"
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__STACK_NAME_TERMINATION_HANDLER__/*"
+                  - "arn:aws:cloudformation:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:stack/__STACK_NAME_AWS_LBC__/*"
+              - Effect: "Allow"
+                Action:
+                  - "cloudformation:DescribeStacks"
+                Resource:
+                  - "*"
+        - PolicyName: "AllowDeployTerminationHandlerResources"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "sqs:CreateQueue"
+                  - "sqs:DeleteQueue"
+                  - "sqs:GetQueueAttributes"
+                  - "sqs:SetQueueAttributes"
+                  - "sqs:TagQueue"
+                Resource:
+                  - "arn:aws:sqs:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:*"
+              - Effect: "Allow"
+                Action:
+                  - "autoscaling:PutLifecycleHook"
+                  - "autoscaling:CreateOrUpdateTags"
+                  - "autoscaling:DeleteLifecycleHook"
+                  - "autoscaling:DeleteTags"
+                Resource:
+                  - "arn:aws:autoscaling:__DEPLOY_AWS_REGION__:__DEPLOY_AWS_ACCOUNT_ID__:autoScalingGroup:*:autoScalingGroupName/*"
+              - Effect: "Allow"
+                Action:
+                  - "autoscaling:DescribeLifecycleHooks"
+                  - "autoscaling:DescribeTags"
+                Resource:
+                  - "*"

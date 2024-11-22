@@ -22,10 +22,19 @@ VPC_ID_PARAMETER="$(jq -r '.vpcId' ./variables.json)"
 ENI_SUBNETS="$(jq -r '.beSubnetIds' ./variables.json)"
 # automation_conf variables
 INFRPANEL_VERSION="$(jq -r '.infrpanel_version' ./automation_conf.json)"
+# role variables
+ROLE_NAME="cnoe-role-${CLUSTER_NAME}-ip"
+ROLE_ARN="arn:aws:iam::${DEPLOY_AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
+# SA NAME
+SA_NAME="${CLUSTER_NAME,,}-${ENVIRONMENT,,}-role-mk8s-infrpanel"
 
 echo "Infrpanel version: ${INFRPANEL_VERSION_TAG}"
 
+assignRoleToServiceAccount "${ROLE_ARN}" "${DEPLOY_AWS_REGION}"
+
 configureClusterAccess "${CLUSTER_NAME}" "${DEPLOY_AWS_REGION}" "${DEPLOY_AWS_ACCOUNT_ID}"
+limitClusterPermissions "${SA_NAME}"
+
 downloadHelmFiles "${INFRPANEL_VERSION}"
 setHelmVariables "${CLUSTER_NAME}" "${SECURITY_GROUP_IDS_PARAMETER}" "${ENI_SUBNETS}" "${DEPLOY_AWS_REGION}"
 HELM_VALUE_PATH="/helm/values/${ENVIRONMENT}.yaml"

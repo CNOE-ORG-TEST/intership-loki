@@ -85,8 +85,39 @@ function createNamespaces() {
 function setupRoleBindings() {
   #Role - RoleBinding
   sed -i -e 's/__SA_NAME__/'"${1}"'/g' /Roles-RoleBindings.yaml
+  sed -i -e 's/__SA_NAME__/'"${1}"'/g' /ClusterRole-ClusterRoleBindings.yaml
 
   setupRoleBindingByNamespace "kube-system"
   setupRoleBindingByNamespace "metrics"
 
+  kubectl apply -f /ClusterRole-ClusterRoleBindings.yaml
+
+}
+
+
+# check if exist role cloud formation
+# $1 : name of the role cloud formation to check
+# $2 : region where deploy the cluster
+# return : string ( "true" if CF exist, "false" otherwise )
+function existRoleCF() {
+  set +e
+  local CF="$(aws cloudformation describe-stacks --stack-name "${1}" --region="${2}" 2>&1)"
+  local RETURN_CODE=$?
+  set -e
+
+  if [[ "${CF}" == *"Stack with id ${1} does not exist"* ]]; then
+    echo "false"
+  elif [ "${RETURN_CODE}" -ne 0 ]; then
+    >&2 echo "Error: ${CF}"
+    exit 1
+  else
+    echo "true"
+  fi
+}
+
+#deploy CF role
+# $1 : Stack name
+#void
+function deployRoleCF(){
+  aws cloudformation deploy --no-fail-on-empty-changeset --template-file /cloudformation_for_role.yaml --stack-name "${1}" --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
 }
